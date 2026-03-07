@@ -1,0 +1,66 @@
+---
+name: implement
+description: "Pick the top task from todo and implement it with tests and review based on related documents"
+user-invocable: true
+argument-hint: "[PRD slug or task specification (auto-detected if omitted)]"
+---
+
+# Task Implementation
+
+Arguments: `$ARGUMENTS`
+
+## Identify Target PRD
+
+1. If a PRD slug is specified in `$ARGUMENTS`, use it
+2. If not specified, search for `docs/prds/*/todo.md` using Glob
+   - If only one is found: use that PRD
+   - If multiple are found: confirm with the user
+   - If none are found: confirm with the user
+
+The target PRD path is `docs/prds/prd-{slug}/` below.
+
+## Steps
+
+### 1. Get Task
+
+- Read `docs/prds/prd-{slug}/todo.md` and identify the first unchecked `- [ ]` task (or the task specified in `$ARGUMENTS`)
+
+### 2. Gather Context
+
+- Identify and read the related specification (`docs/prds/prd-{slug}/specifications/`)
+- Check `docs/prds/prd-{slug}/knowledge.md` if it exists
+- Investigate related source code using Grep / Glob
+
+### 3. Implement
+
+- Implement the task
+- Create or update corresponding tests following the project's documented conventions and existing test layout
+
+### 4. Review Cycle
+
+Execute the following in order:
+
+1. Run `/test` to execute tests
+2. Run `/build-check` to run build and lint checks
+3. Run `/code-review` to conduct code review
+4. If there are findings, fix them and re-review as needed
+
+### 5. Update Records
+
+- Check off the completed implementation step checkboxes in the related specification
+- Remove the completed task line from `docs/prds/prd-{slug}/todo.md` and keep remaining executable tasks as unchecked `- [ ]` lines
+- Update `docs/prds/prd-{slug}/progress.md` using the exact template schema
+  - If all acceptance criteria for that specification are complete, mark the progress row as `done` and fill in the completion date
+  - Otherwise mark the progress row as `in-progress` and leave the completion date blank
+- Record learnings in `docs/prds/prd-{slug}/knowledge.md`
+
+### 6. Completion Report
+
+- Report what was done to the user
+- Suggest using `/commit-push` to commit
+
+## Notes
+
+- Aim to complete one task per execution
+- Do not mark a specification `done` just because one todo item was completed
+- If tests don't pass, record as a blocker in `todo.md` and report to the user

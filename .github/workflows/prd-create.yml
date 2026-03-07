@@ -1,0 +1,347 @@
+name: PRD Auto Create
+
+on:
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: prd-create-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  # --- Job 1: LLM Content Analysis ---
+  validate:
+    if: github.event.label.name == 'ralph:prd-requested'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    outputs:
+      slug: ${{ steps.slug.outputs.slug }}
+      verdict: ${{ steps.validate.outputs.verdict }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Save issue body to file
+        run: printenv ISSUE_BODY > /tmp/issue-body.md
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+
+      - name: Extract slug and check format
+        id: slug
+        run: |
+          chmod +x .github/scripts/parse-issue-body.sh
+          .github/scripts/parse-issue-body.sh /tmp/issue-body.md .
+
+      - name: Post slug error and remove label
+        if: failure() && steps.slug.outputs.valid == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const error = process.env.SLUG_ERROR;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## PRD Slug Error\n\n${error}\n\nPlease fix the slug and re-apply the \`ralph:prd-requested\` label.`
+            });
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              name: 'ralph:prd-requested'
+            });
+        env:
+          SLUG_ERROR: ${{ steps.slug.outputs.error }}
+
+      - name: Install Claude Code CLI
+        if: steps.slug.outputs.valid == 'true'
+        run: bash .github/scripts/install-agent-runtime.sh
+
+      - name: Validate issue content with LLM
+        if: steps.slug.outputs.valid == 'true'
+        id: validate
+        run: |
+          cat > /tmp/validate-prompt.md <<'VALIDATE_PROMPT'
+          You are a PRD (Product Requirements Document) quality reviewer.
+          Determine whether the following issue body contains sufficient information to auto-generate a PRD document.
+
+          ## Evaluation Criteria
+
+          Evaluate from the following perspectives:
+
+          1. **Overview**: Is the feature/product clearly described? (Can you understand what is being built?)
+          2. **Background**: Is the reason for this feature stated?
+          3. **Scope**: Are the included features concretely listed? (At least one specific feature)
+          4. **Target Users**: Can target users be identified?
+
+          Optional fields (principles, out-of-scope, use cases, functional requirements, UX requirements, system requirements) may be left blank.
+          AI can infer and fill them in.
+
+          ## Evaluation Rules
+
+          - If any of the 4 required fields (overview, background, scope, target users) is empty or lacks meaningful content -> NG
+          - If overview or scope is too vague to determine what to build -> NG
+          - If all required fields are filled and contain sufficient information for PRD generation -> OK
+
+          ## Output Format
+
+          You must output in the following format. Do not output any other text.
+
+          If OK:
+          ```
+          <verdict>OK</verdict>
+          ```
+
+          If NG:
+          ```
+          <verdict>NG</verdict>
+          <feedback>
+          List specific improvements here (bullet points)
+          </feedback>
+          ```
+
+          ## Issue Body
+
+          VALIDATE_PROMPT
+
+          cat /tmp/issue-body.md >> /tmp/validate-prompt.md
+
+          echo "=== Starting LLM content analysis ==="
+          RESULT=$(claude --dangerously-skip-permissions --print < /tmp/validate-prompt.md 2>/dev/null)
+          echo "$RESULT"
+
+          # Parse verdict
+          VERDICT=$(echo "$RESULT" | grep -oP '(?<=<verdict>)(OK|NG)(?=</verdict>)' | head -1)
+
+          if [[ "$VERDICT" == "OK" ]]; then
+            echo "verdict=OK" >> "$GITHUB_OUTPUT"
+          elif [[ "$VERDICT" == "NG" ]]; then
+            echo "verdict=NG" >> "$GITHUB_OUTPUT"
+            FEEDBACK=$(echo "$RESULT" | sed -n '/<feedback>/,/<\/feedback>/p' | sed '1d;$d')
+            {
+              echo "feedback<<FEEDBACK_EOF"
+              echo "$FEEDBACK"
+              echo "FEEDBACK_EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "verdict=NG" >> "$GITHUB_OUTPUT"
+            echo "feedback=Could not parse LLM verdict. Please review the issue content." >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Approve - add label and comment
+        if: steps.validate.outputs.verdict == 'OK'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['ralph:prd-create']
+            });
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: 'Issue content analysis complete. Starting automatic PRD document generation.'
+            });
+
+      - name: Reject - post feedback and remove label
+        if: steps.validate.outputs.verdict == 'NG'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const feedback = process.env.LLM_FEEDBACK;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## PRD Creation Request Feedback\n\nAfter analyzing the issue content, we determined there is insufficient information for PRD generation.\n\n### Areas for Improvement\n\n${feedback}\n\n---\nPlease update the content and re-apply the \`ralph:prd-requested\` label.`
+            });
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              name: 'ralph:prd-requested'
+            });
+        env:
+          LLM_FEEDBACK: ${{ steps.validate.outputs.feedback }}
+
+  # --- Job 2: PRD Document Generation ---
+  create:
+    needs: validate
+    if: needs.validate.outputs.verdict == 'OK'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install agent runtime
+        run: bash .github/scripts/install-agent-runtime.sh
+
+      - name: Project bootstrap
+        run: bash .github/scripts/setup-project-env.sh
+
+      - name: Save issue body to file
+        run: printenv ISSUE_BODY > /tmp/issue-body.md
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+
+      - name: Build prompt file
+        run: |
+          SLUG="$INPUT_SLUG"
+          PRD_DIR="docs/prds/prd-${SLUG}"
+
+          cat > /tmp/prd-prompt.md <<PROMPT_DELIM
+          You are a PRD document generation expert. Generate a complete set of PRD documents based on the following issue information.
+
+          ## Instructions
+
+          1. Read the following files to understand the project structure and format:
+             - \`CLAUDE.md\` — Project conventions
+             - \`docs/architecture.md\` — System architecture
+             - \`.claude/skills/prd-create/SKILL.md\` — PRD template
+             - \`.claude/skills/spec-create/SKILL.md\` — Specification template
+             - \`docs/prds/_template/\` — Template directory (reference for format)
+
+          2. Generate the complete PRD document set in:
+             \`${PRD_DIR}/\`
+
+          3. Files to generate:
+
+             a. \`prd.md\` — PRD body
+                - Include \`ralph/${SLUG}\` in the \`## Branch\` section
+                - Transfer required fields from issue information
+                - If optional fields are empty, infer and fill from required fields
+                - Follow the format in \`docs/prds/_template/prd.md\`
+
+             b. \`specifications/\` — Feature specs in Gherkin format
+                - Create spec-NNN-slug.md for each feature in scope
+                - Follow the template in \`.claude/skills/spec-create/SKILL.md\`
+                - Include acceptance criteria and implementation steps in each spec
+
+             c. \`progress.md\` — Specification-level progress tracking
+                - List all specifications with \`pending\` status
+                - Follow the format in \`docs/prds/_template/progress.md\`
+
+             d. \`todo.md\` — Implementation tasks for the first specification
+                - Use \`- [ ]\` checkbox format
+                - List the first specification's implementation steps as tasks
+
+             e. \`dependencies.md\` — Specification dependencies
+                - Mermaid graph and implementation order table
+                - Follow the format in \`docs/prds/_template/dependencies.md\`
+
+             f. \`knowledge.md\` — Initialize with empty template
+                - Only \`## Codebase Patterns\` and \`## Gotchas\` sections
+
+          4. Append the new PRD information to \`docs/roadmap.md\` (preserve existing content)
+
+          5. Important constraints:
+             - Write in English
+             - Do not modify source code (documents only)
+             - Strictly follow existing file formats
+             - todo.md must contain tasks in \`- [ ]\` format
+             - progress.md must contain rows with \`pending\` status
+
+          ## Issue Body
+          PROMPT_DELIM
+
+          cat /tmp/issue-body.md >> /tmp/prd-prompt.md
+        env:
+          INPUT_SLUG: ${{ needs.validate.outputs.slug }}
+
+      - name: Generate PRD with Claude Code CLI
+        run: |
+          echo "=== Starting PRD generation with Claude Code CLI ==="
+          claude --dangerously-skip-permissions --verbose --print < /tmp/prd-prompt.md
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Commit and create PR
+        run: |
+          default_branch="${DEFAULT_BRANCH:-main}"
+          SLUG="$INPUT_SLUG"
+          BRANCH="prd-create/${SLUG}"
+          ISSUE_NUMBER="$INPUT_ISSUE_NUMBER"
+
+          git config user.name "Ralph Bot"
+          git config user.email "ralph-bot@users.noreply.github.com"
+
+          # Create new branch
+          git checkout -b "$BRANCH"
+
+          # Stage generated files
+          git add "docs/prds/prd-${SLUG}/" || true
+          git add docs/roadmap.md || true
+
+          # Error if no changes
+          if git diff --cached --quiet; then
+            echo "No generated files found. Check Claude Code CLI output."
+            exit 1
+          fi
+
+          # Commit
+          git commit -m "docs: generate PRD document set for prd-${SLUG}"
+
+          # Push
+          git push origin "$BRANCH"
+
+          # Generate PR body
+          cat > /tmp/pr-body.md <<PR_BODY_EOF
+          ## Summary
+
+          Auto-generated PRD document set based on Issue #${ISSUE_NUMBER}.
+
+          ## Generated Files
+
+          - \`docs/prds/prd-${SLUG}/prd.md\` — PRD body
+          - \`docs/prds/prd-${SLUG}/specifications/\` — Feature specifications
+          - \`docs/prds/prd-${SLUG}/progress.md\` — Progress tracking
+          - \`docs/prds/prd-${SLUG}/todo.md\` — Task list
+          - \`docs/prds/prd-${SLUG}/dependencies.md\` — Dependencies
+          - \`docs/prds/prd-${SLUG}/knowledge.md\` — Knowledge base
+
+          ## Next Steps
+
+          1. Review the generated PRD content
+          2. Make any necessary adjustments
+          3. Once merged, Ralph Loop will automatically start implementation
+
+          Closes #${ISSUE_NUMBER}
+
+          ---
+          *This PR was automatically generated by Ralph PRD Auto Create*
+          PR_BODY_EOF
+          sed -i 's/^          //' /tmp/pr-body.md
+
+          # Create PR
+          PR_URL=$(gh pr create \
+            --title "docs: create PRD prd-${SLUG}" \
+            --body-file /tmp/pr-body.md \
+            --base "$default_branch" \
+            --head "$BRANCH")
+
+          echo "PR created: $PR_URL"
+
+          # Comment PR link on issue
+          gh issue comment "$ISSUE_NUMBER" --body "PRD document set generated and PR created: ${PR_URL}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_SLUG: ${{ needs.validate.outputs.slug }}
+          INPUT_ISSUE_NUMBER: ${{ github.event.issue.number }}

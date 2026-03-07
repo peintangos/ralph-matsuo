@@ -1,0 +1,178 @@
+name: Ralph Loop
+
+on:
+  # Manual trigger (for debugging and individual runs)
+  workflow_dispatch:
+    inputs:
+      prd_dir:
+        description: 'PRD directory path (e.g., docs/prds/prd-my-feature). Leave empty for Orchestrator auto-detection'
+        required: false
+        default: ''
+      max_iterations:
+        description: 'Maximum number of iterations'
+        required: false
+        default: '10'
+
+  # Scheduled scan (daily at UTC 0:00)
+  schedule:
+    - cron: '0 0 * * *'
+
+  # Trigger on PRD changes
+  push:
+    paths:
+      - 'docs/prds/**'
+
+# Prevent concurrent runs
+concurrency:
+  group: ralph-loop
+  cancel-in-progress: false
+
+jobs:
+  orchestrate:
+    if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install agent runtime
+        run: bash .github/scripts/install-agent-runtime.sh
+
+      - name: Project bootstrap
+        run: bash .github/scripts/setup-project-env.sh
+
+      - name: Run Ralph
+        id: ralph
+        run: |
+          set +e
+          RALPH_EXIT=0
+          if [ -n "${{ github.event.inputs.prd_dir }}" ]; then
+            # workflow_dispatch: Run directly on specified PRD
+            source scripts/ralph/prd-helpers.sh
+            prd_dir="${{ github.event.inputs.prd_dir }}"
+            target_branch="$(get_prd_branch "$prd_dir")"
+
+            if [ -z "$target_branch" ]; then
+              echo "Error: PRD branch is not defined in ${prd_dir}/prd.md"
+              RALPH_EXIT=1
+            elif ensure_checked_out_branch "$target_branch"; then
+              ./scripts/ralph/ralph.sh \
+                --tool claude \
+                --prd "$prd_dir" \
+                "${{ github.event.inputs.max_iterations }}"
+              RALPH_EXIT=$?
+            else
+              RALPH_EXIT=$?
+            fi
+          else
+            # schedule/push: Orchestrator auto-detection
+            ./scripts/ralph/orchestrator.sh \
+              --max-iterations "${{ github.event.inputs.max_iterations || '10' }}"
+            RALPH_EXIT=$?
+          fi
+          echo "exit_code=$RALPH_EXIT" >> "$GITHUB_OUTPUT"
+          exit 0
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push changes
+        if: steps.ralph.outputs.exit_code == '0' || steps.ralph.outputs.exit_code == '2'
+        run: |
+          git config user.name "Ralph Bot"
+          git config user.email "ralph-bot@users.noreply.github.com"
+
+          # Fail if there are uncommitted changes left behind
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Uncommitted changes found. ralph.sh may have forgotten to commit."
+            git status
+            exit 1
+          fi
+
+          # Only push if there are differences from remote
+          git fetch origin
+          local_head=$(git rev-parse HEAD)
+          current_branch=$(git rev-parse --abbrev-ref HEAD)
+          remote_head=$(git rev-parse "origin/$current_branch" 2>/dev/null || echo "")
+
+          if [ "$local_head" != "$remote_head" ]; then
+            echo "Pushing changes: $current_branch"
+            git push origin "$current_branch"
+          else
+            echo "No changes to push"
+          fi
+
+      - name: Create PR
+        if: steps.ralph.outputs.exit_code == '0' || steps.ralph.outputs.exit_code == '2'
+        run: |
+          default_branch="${DEFAULT_BRANCH:-main}"
+          source scripts/ralph/prd-helpers.sh
+
+          current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+          # Skip PR creation on the repository default branch
+          if [ "$current_branch" = "$default_branch" ]; then
+            echo "On default branch ($default_branch), skipping PR creation"
+            exit 0
+          fi
+
+          # Skip if PR already exists
+          existing_pr=$(gh pr list --head "$current_branch" --state open --json number --jq '.[0].number')
+          if [ -n "$existing_pr" ]; then
+            echo "Existing PR #$existing_pr found, skipping"
+            exit 0
+          fi
+
+          # Identify PRD directory (scan prd.md files for matching branch)
+          prd_title=""
+          for prd_dir in docs/prds/prd-*/; do
+            if [ -f "${prd_dir}prd.md" ]; then
+              prd_branch=$(get_prd_branch "$prd_dir")
+              if [ "$prd_branch" = "$current_branch" ]; then
+                prd_title=$(get_prd_title "$prd_dir")
+                break
+              fi
+            fi
+          done
+
+          # Generate title
+          if [ -n "$prd_title" ]; then
+            pr_title="feat: $prd_title"
+          else
+            pr_title="feat: changes from $current_branch"
+          fi
+
+          # Generate body (summary from commit log)
+          commit_summary="$(git log "origin/$default_branch"..HEAD --pretty=format:'- %s' 2>/dev/null || echo '(Unable to retrieve commit log)')"
+          pr_body=$'## Changes\n\n'"$commit_summary"$'\n\n---\n*This PR was automatically created by Ralph Loop*'
+
+          gh pr create \
+            --title "$pr_title" \
+            --body "$pr_body" \
+            --base "$default_branch" \
+            --head "$current_branch"
+
+          echo "PR created"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Ralph result
+        if: steps.ralph.outputs.exit_code == '2'
+        run: |
+          echo "::notice::Ralph reached max iterations with work remaining. A later run can continue from the updated PRD state."
+
+      - name: Fail on Ralph runtime error
+        if: steps.ralph.outputs.exit_code != '0' && steps.ralph.outputs.exit_code != '2'
+        run: |
+          echo "Ralph exited with code ${{ steps.ralph.outputs.exit_code }} (max iterations reached or abnormal exit)"
+          exit 1

@@ -1,0 +1,109 @@
+name: PRD Creation Request
+description: Automatically generate a complete set of PRD documents
+labels: ["ralph:prd-requested"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## PRD Creation Request
+
+        Fill out the form below and Claude Code CLI will automatically generate a complete set of PRD documents and submit them as a PR.
+
+        **Fill in the required fields** and AI will infer and fill in optional fields.
+
+  - type: input
+    id: slug
+    attributes:
+      label: PRD Slug
+      description: Used for directory and branch names (lowercase letters, numbers, and hyphens only)
+      placeholder: "e.g., user-authentication"
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Overview
+      description: What this product/feature achieves (2-3 sentences)
+      placeholder: "e.g., Add authentication so users can log in with email and password. Includes session management and logout."
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: Background
+      description: Why this feature is needed
+      placeholder: "e.g., Currently data is stored in LocalStorage and cannot be shared across devices. Introducing authentication will lay the groundwork for cloud sync."
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope_in
+    attributes:
+      label: Scope (In)
+      description: List of features to include (bullet points recommended)
+      placeholder: |
+        - Login page
+        - User registration page
+        - Session management
+        - Logout functionality
+    validations:
+      required: true
+
+  - type: textarea
+    id: target_user
+    attributes:
+      label: Target Users
+      description: Description of the target users
+      placeholder: "e.g., Users who want to access their data across multiple devices"
+    validations:
+      required: true
+
+  - type: textarea
+    id: principles
+    attributes:
+      label: Product Principles
+      description: Design principles and values (optional. AI will infer if left blank)
+    validations:
+      required: false
+
+  - type: textarea
+    id: scope_out
+    attributes:
+      label: Out of Scope
+      description: List of features NOT included (optional)
+    validations:
+      required: false
+
+  - type: textarea
+    id: use_cases
+    attributes:
+      label: Use Cases
+      description: Key use cases (optional. AI will infer if left blank)
+    validations:
+      required: false
+
+  - type: textarea
+    id: functional_requirements
+    attributes:
+      label: Functional Requirements
+      description: Specific functional requirements (optional. AI will infer if left blank)
+    validations:
+      required: false
+
+  - type: textarea
+    id: ux_requirements
+    attributes:
+      label: UX Requirements
+      description: User experience requirements (optional. AI will infer if left blank)
+    validations:
+      required: false
+
+  - type: textarea
+    id: system_requirements
+    attributes:
+      label: System Requirements
+      description: Technical and system requirements (optional. AI will infer if left blank)
+    validations:
+      required: false

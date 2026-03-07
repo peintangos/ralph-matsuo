@@ -1,8 +1,15 @@
 {
-  "name": "ralph-loop-sample1",
-  "version": "0.1.0",
-  "private": true,
+  "name": "ralph-matsuo",
+  "version": "1.0.0",
+  "description": "Autonomous development framework powered by Claude Code",
   "scripts": {
-    "start": "node index.js"
-  }
+    "test": "bash -n scripts/*.sh scripts/ralph/*.sh .github/scripts/*.sh .claude/hooks/*.sh",
+    "test:doc-contracts": "bash scripts/test-doc-contracts.sh",
+    "test:orchestrator": "bash scripts/ralph/orchestrator.sh --dry-run && bash scripts/ralph/test-orchestrator-status.sh && bash scripts/ralph/test-ralph-complete-signal.sh && bash scripts/ralph/test-ralph-cli.sh && bash scripts/ralph/test-prd-helpers.sh && bash scripts/ralph/test-orchestrator-execution.sh",
+    "test:repo-lint": "bash scripts/test-lint-repo.sh",
+    "lint:repo": "bash scripts/lint-repo.sh",
+    "validate": "npm run test && npm run test:doc-contracts && npm run test:orchestrator && npm run test:repo-lint && npm run lint:repo"
+  },
+  "private": false,
+  "license": "MIT"
 }
