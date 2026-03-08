@@ -46,6 +46,21 @@ setup_repo() {
 EOF
 }
 
+setup_git_repo_with_upstream() {
+  local repo_dir="$1"
+  local remote_repo="$repo_dir/.git/ralph-test-remote.git"
+
+  git -C "$repo_dir" init >/dev/null 2>&1
+  git -C "$repo_dir" config user.name "Ralph Test"
+  git -C "$repo_dir" config user.email "ralph-test@example.com"
+  git -C "$repo_dir" checkout -b ralph/test >/dev/null 2>&1
+  git -C "$repo_dir" add .
+  git -C "$repo_dir" commit -m "chore: initial" >/dev/null 2>&1
+  git init --bare "$remote_repo" >/dev/null 2>&1
+  git -C "$repo_dir" remote add origin "$remote_repo"
+  git -C "$repo_dir" push -u origin ralph/test >/dev/null 2>&1
+}
+
 run_ralph() {
   local repo_dir="$1"
   local fake_output="$2"
@@ -84,6 +99,7 @@ test_inline_complete_signal_does_not_finish() {
   repo_dir="$(mktemp -d)"
   trap 'rm -rf "$repo_dir"' RETURN
   setup_repo "$repo_dir"
+  setup_git_repo_with_upstream "$repo_dir"
 
   local result
   result="$(run_ralph "$repo_dir" $'analysis...\n<promise>COMPLETE</promise> seen in explanation, not as final signal\n')"
@@ -108,6 +124,7 @@ test_final_complete_signal_finishes() {
   repo_dir="$(mktemp -d)"
   trap 'rm -rf "$repo_dir"' RETURN
   setup_repo "$repo_dir"
+  setup_git_repo_with_upstream "$repo_dir"
 
   local result
   result="$(run_ralph "$repo_dir" $'work complete\n<promise>COMPLETE</promise>\n')"

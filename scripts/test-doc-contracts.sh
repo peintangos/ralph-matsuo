@@ -53,6 +53,8 @@ assert_contains "scripts/ralph/CLAUDE.md" 'select the next unchecked `- [ ]` tas
 assert_contains "scripts/ralph/CLAUDE.md" "Prefer the smallest practical unit first" "headless Ralph must prefer unit-level automated tests when feasible"
 assert_contains "scripts/ralph/CLAUDE.md" "Do not rely on manual verification alone when automated tests are feasible" "headless Ralph must require automated tests when feasible"
 assert_contains "scripts/ralph/CLAUDE.md" 'Update relevant implementation step checkboxes (`- [x]`)' "headless Ralph must update implementation step checkboxes"
+assert_contains "scripts/ralph/CLAUDE.md" "Push the current branch after the commit." "headless Ralph must require pushing each iteration"
+assert_contains "scripts/ralph/CLAUDE.md" "Do not leave local-only commits behind" "headless Ralph must forbid local-only commits"
 assert_not_contains "scripts/ralph/CLAUDE.md" 'Update relevant acceptance criteria checkboxes (`- [x]`)' "headless Ralph must not assume checklist-style acceptance criteria"
 assert_contains "docs/prds/_template/specifications/spec-001-example.md" '```gherkin' "spec template must keep Gherkin acceptance criteria"
 assert_contains "docs/prds/_template/specifications/spec-001-example.md" "- [ ] [Executable task sized for one Ralph iteration]" "spec template must keep checkbox implementation steps"

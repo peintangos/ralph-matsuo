@@ -31,7 +31,7 @@ Ralph Matsuo is not:
 - **Documents stay authoritative**: `prd.md`, specifications, dependencies, progress, and `todo.md` drive execution.
 - **Interactive and autonomous modes share the same artifacts**: planning and execution do not fork into separate systems.
 - **Execution is constrained**: each iteration handles one todo task, then tests, validation, and self-review.
-- **Branch and PR flow are built in**: PRD-defined branches can be pushed and turned into pull requests automatically.
+- **Branch and PR flow are built in**: PRD-defined branches can be pushed each iteration and turned into pull requests automatically at the end of a run.
 - **The template stays reusable**: adopters customize the workflow around their own stack instead of inheriting a demo app.
 
 ## How Ralph Works
@@ -49,8 +49,8 @@ flowchart TD
     G[Implement one todo task]
     H[Test -> optional build/lint -> self-review]
     I[Update progress, spec, knowledge, todo]
-    J[Commit on ralph/* branch]
-    K[Push and open PR]
+    J[Commit and push on ralph/* branch]
+    K[Open PR when run exits]
 
     A --> B
     A --> C
@@ -160,7 +160,7 @@ Or let the orchestrator choose the next ready PRD:
 ./scripts/ralph/orchestrator.sh --max-iterations 10
 ```
 
-If the branch named in a PRD's `## Branch` section does not exist yet, Ralph creates it from the current HEAD on first execution.
+If the branch named in a PRD's `## Branch` section does not exist yet, Ralph creates it from the current HEAD on first execution. Each successful Ralph iteration is expected to leave the branch committed and pushed; the GitHub workflow only handles the final PR creation step.
 
 ## Requirements and Automation
 
@@ -253,7 +253,7 @@ Runs autonomous execution in GitHub Actions.
 - processes at most one ready PRD per workflow run, then lets a later run pick the next ready PRD
 - keeps project-specific dependency or environment setup in `.github/scripts/setup-project-env.sh`
 - can open issues for incomplete PRDs when the workflow token has `issues: write`
-- pushes committed work and opens a pull request when appropriate
+- expects Ralph to push each iteration and opens a pull request when appropriate
 - does not auto-implement from the temporary `prd-create/*` branch before the PRD PR is merged
 
 ## Local Validation

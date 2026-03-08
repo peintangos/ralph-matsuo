@@ -106,10 +106,11 @@ After implementation is complete, update the following documents:
 3. **specification**: Update relevant implementation step checkboxes (`- [x]`). Keep the Gherkin acceptance criteria accurate; do not rewrite the specification into a different template
 4. **progress.md**: Update the specification to `done` **only if ALL acceptance criteria are complete** (fill in completion date). Otherwise update to `in-progress` and leave the completion date blank
 
-## Phase 5: Commit and Completion Check
+## Phase 5: Commit, Push, and Completion Check
 
 1. Commit all changes. Message format: `feat: spec-NNN - {todo task summary}`
-2. Check `todo.md` and `progress.md`
+2. Push the current branch after the commit. If the branch has no upstream yet, set it on the first push.
+3. Check `todo.md` and `progress.md`
 
 ### Completion Criteria
 
@@ -127,6 +128,7 @@ If todo tasks remain, or there are `pending` / `in-progress` specifications, end
 
 - Work on only one todo task per iteration
 - Do not commit broken code
+- Do not leave local-only commits behind; each iteration must end with the remote branch updated
 - Follow existing code patterns
 - Always read knowledge.md patterns before implementing
 - Commit messages use Conventional Commits format in English

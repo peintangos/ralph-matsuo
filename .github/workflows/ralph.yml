@@ -51,6 +51,11 @@ jobs:
       - name: Project bootstrap
         run: bash .github/scripts/setup-project-env.sh
 
+      - name: Configure git identity
+        run: |
+          git config user.name "Ralph Bot"
+          git config user.email "ralph-bot@users.noreply.github.com"
+
       - name: Run Ralph
         id: ralph
         run: |
@@ -86,37 +91,17 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push changes
-        if: steps.ralph.outputs.exit_code == '0' || steps.ralph.outputs.exit_code == '2'
-        run: |
-          git config user.name "Ralph Bot"
-          git config user.email "ralph-bot@users.noreply.github.com"
-
-          # Fail if there are uncommitted changes left behind
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Uncommitted changes found. ralph.sh may have forgotten to commit."
-            git status
-            exit 1
-          fi
-
-          # Only push if there are differences from remote
-          git fetch origin
-          local_head=$(git rev-parse HEAD)
-          current_branch=$(git rev-parse --abbrev-ref HEAD)
-          remote_head=$(git rev-parse "origin/$current_branch" 2>/dev/null || echo "")
-
-          if [ "$local_head" != "$remote_head" ]; then
-            echo "Pushing changes: $current_branch"
-            git push origin "$current_branch"
-          else
-            echo "No changes to push"
-          fi
-
       - name: Create PR
         if: steps.ralph.outputs.exit_code == '0' || steps.ralph.outputs.exit_code == '2'
         run: |
           default_branch="${DEFAULT_BRANCH:-main}"
           source scripts/ralph/prd-helpers.sh
+
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Uncommitted changes found. ralph.sh may have forgotten to commit."
+            git status
+            exit 1
+          fi
 
           current_branch=$(git rev-parse --abbrev-ref HEAD)
 

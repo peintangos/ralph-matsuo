@@ -87,6 +87,65 @@ PROMPT_TEMPLATE="$(<"$SCRIPT_DIR/CLAUDE.md")"
 PROMPT="${PROMPT_TEMPLATE//\{\{PRD_DIR\}\}/$PRD_DIR}"
 RUN_OUTPUT=""
 
+current_branch_name() {
+  git rev-parse --abbrev-ref HEAD 2>/dev/null || true
+}
+
+branch_status_porcelain() {
+  git status --porcelain=v2 --branch 2>/dev/null || true
+}
+
+current_branch_upstream() {
+  branch_status_porcelain | awk '/^# branch\.upstream / { print $3; exit }'
+}
+
+current_branch_ahead_count() {
+  local ahead_field
+
+  ahead_field="$(branch_status_porcelain | awk '/^# branch\.ab / { print $3; exit }')"
+  if [[ -z "$ahead_field" ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  printf '%s\n' "${ahead_field#+}"
+}
+
+verify_iteration_git_state() {
+  local iteration="$1"
+  local current_branch
+  local upstream_branch
+  local ahead_count
+
+  if [[ -n "$(git status --porcelain 2>/dev/null || true)" ]]; then
+    echo ""
+    echo "Ralph failed: iteration $iteration left uncommitted changes. Each iteration must end with a commit and push." >&2
+    git status --short >&2 || true
+    return 1
+  fi
+
+  current_branch="$(current_branch_name)"
+  if [[ -z "$current_branch" ]]; then
+    echo ""
+    echo "Ralph failed: iteration $iteration could not determine the current git branch." >&2
+    return 1
+  fi
+
+  upstream_branch="$(current_branch_upstream)"
+  if [[ -z "$upstream_branch" ]]; then
+    echo ""
+    echo "Ralph failed: iteration $iteration did not push branch '$current_branch' to an upstream. Each iteration must end with a push." >&2
+    return 1
+  fi
+
+  ahead_count="$(current_branch_ahead_count)"
+  if [[ "$ahead_count" -gt 0 ]]; then
+    echo ""
+    echo "Ralph failed: iteration $iteration left $ahead_count unpushed commit(s) on '$current_branch'. Each iteration must end with a push." >&2
+    return 1
+  fi
+}
+
 is_complete_output() {
   local output="$1"
   local last_non_empty_line
@@ -135,6 +194,10 @@ for i in $(seq 1 "$MAX_ITERATIONS"); do
     echo ""
     echo "Ralph failed: $TOOL exited with status $agent_exit during iteration $i." >&2
     exit "$agent_exit"
+  fi
+
+  if ! verify_iteration_git_state "$i"; then
+    exit 1
   fi
 
   # Check for completion signal

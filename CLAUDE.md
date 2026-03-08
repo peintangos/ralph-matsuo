@@ -138,7 +138,7 @@ Each iteration should:
 2. implement it and write tests
 3. run the configured tests and validation commands
 4. update planning documents
-5. commit on the PRD branch
+5. commit and push on the PRD branch
 
 See `scripts/ralph/CLAUDE.md` for the exact headless workflow.
 

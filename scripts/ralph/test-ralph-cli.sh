@@ -121,11 +121,11 @@ EOF
 test_claude_completion_exits_zero() {
   local repo_dir stub_dir output status
   repo_dir="$(mktemp -d)"
-  trap 'rm -rf "$repo_dir"' RETURN
+  stub_dir="$(mktemp -d)"
+  trap 'rm -rf "$repo_dir" "$stub_dir"' RETURN
   setup_ralph_repo "$repo_dir"
   create_basic_prd "$repo_dir"
-  stub_dir="$repo_dir/test-bin"
-  mkdir -p "$stub_dir"
+  setup_git_repo_with_upstream "$repo_dir" "ralph/test"
 
   create_stub_command "$stub_dir" claude <<'EOF'
 #!/bin/bash
@@ -154,11 +154,11 @@ test_amp_is_rejected() {
 test_max_iterations_exit_code_is_two() {
   local repo_dir stub_dir output status
   repo_dir="$(mktemp -d)"
-  trap 'rm -rf "$repo_dir"' RETURN
+  stub_dir="$(mktemp -d)"
+  trap 'rm -rf "$repo_dir" "$stub_dir"' RETURN
   setup_ralph_repo "$repo_dir"
   create_basic_prd "$repo_dir"
-  stub_dir="$repo_dir/test-bin"
-  mkdir -p "$stub_dir"
+  setup_git_repo_with_upstream "$repo_dir" "ralph/test"
 
   create_stub_command "$stub_dir" claude <<'EOF'
 #!/bin/bash
@@ -192,6 +192,98 @@ EOF
   assert_contains "$output" "Ralph failed: claude exited with status 42 during iteration 1." "Failure message should include the agent exit code"
 }
 
+test_uncommitted_changes_fail_iteration() {
+  local repo_dir stub_dir output status
+  repo_dir="$(mktemp -d)"
+  stub_dir="$(mktemp -d)"
+  trap 'rm -rf "$repo_dir" "$stub_dir"' RETURN
+  setup_ralph_repo "$repo_dir"
+  create_basic_prd "$repo_dir"
+  setup_git_repo_with_upstream "$repo_dir" "ralph/test"
+
+  create_stub_command "$stub_dir" claude <<'EOF'
+#!/bin/bash
+set -euo pipefail
+cat >/dev/null
+printf 'dirty\n' > dirty.txt
+printf '<promise>COMPLETE</promise>\n'
+EOF
+
+  capture_repo_command output status "$repo_dir" env PATH="$stub_dir:$PATH" "$BASH" scripts/ralph/ralph.sh --tool claude --prd docs/prds/prd-basic 1
+  assert_exit_code 1 "$status" "Dirty worktree should fail the iteration"
+  assert_contains "$output" "Ralph failed: iteration 1 left uncommitted changes. Each iteration must end with a commit and push." "Dirty worktree should be reported"
+}
+
+test_missing_upstream_fails_iteration() {
+  local repo_dir stub_dir output status
+  repo_dir="$(mktemp -d)"
+  stub_dir="$(mktemp -d)"
+  trap 'rm -rf "$repo_dir" "$stub_dir"' RETURN
+  setup_ralph_repo "$repo_dir"
+  create_basic_prd "$repo_dir"
+  setup_git_repo "$repo_dir" "ralph/test"
+
+  create_stub_command "$stub_dir" claude <<'EOF'
+#!/bin/bash
+cat >/dev/null
+printf '<promise>COMPLETE</promise>\n'
+EOF
+
+  capture_repo_command output status "$repo_dir" env PATH="$stub_dir:$PATH" "$BASH" scripts/ralph/ralph.sh --tool claude --prd docs/prds/prd-basic 1
+  assert_exit_code 1 "$status" "Missing upstream should fail the iteration"
+  assert_contains "$output" "Ralph failed: iteration 1 did not push branch 'ralph/test' to an upstream. Each iteration must end with a push." "Missing upstream should be reported"
+}
+
+test_unpushed_commits_fail_iteration() {
+  local repo_dir stub_dir output status
+  repo_dir="$(mktemp -d)"
+  stub_dir="$(mktemp -d)"
+  trap 'rm -rf "$repo_dir" "$stub_dir"' RETURN
+  setup_ralph_repo "$repo_dir"
+  create_basic_prd "$repo_dir"
+  setup_git_repo_with_upstream "$repo_dir" "ralph/test"
+
+  create_stub_command "$stub_dir" claude <<'EOF'
+#!/bin/bash
+set -euo pipefail
+cat >/dev/null
+printf 'local only\n' > feature.txt
+git add feature.txt
+git commit -m "feat: local only" >/dev/null 2>&1
+printf '<promise>COMPLETE</promise>\n'
+EOF
+
+  capture_repo_command output status "$repo_dir" env PATH="$stub_dir:$PATH" "$BASH" scripts/ralph/ralph.sh --tool claude --prd docs/prds/prd-basic 1
+  assert_exit_code 1 "$status" "Unpushed commits should fail the iteration"
+  assert_contains "$output" "Ralph failed: iteration 1 left 1 unpushed commit(s) on 'ralph/test'. Each iteration must end with a push." "Unpushed commits should be reported"
+}
+
+test_first_push_with_upstream_succeeds() {
+  local repo_dir stub_dir output status
+  repo_dir="$(mktemp -d)"
+  stub_dir="$(mktemp -d)"
+  trap 'rm -rf "$repo_dir" "$stub_dir"' RETURN
+  setup_ralph_repo "$repo_dir"
+  create_basic_prd "$repo_dir"
+  setup_git_repo "$repo_dir" "ralph/test"
+  add_git_remote "$repo_dir"
+
+  create_stub_command "$stub_dir" claude <<'EOF'
+#!/bin/bash
+set -euo pipefail
+cat >/dev/null
+printf 'pushed\n' > feature.txt
+git add feature.txt
+git commit -m "feat: pushed" >/dev/null 2>&1
+git push -u origin "$(git rev-parse --abbrev-ref HEAD)" >/dev/null 2>&1
+printf '<promise>COMPLETE</promise>\n'
+EOF
+
+  capture_repo_command output status "$repo_dir" env PATH="$stub_dir:$PATH" "$BASH" scripts/ralph/ralph.sh --tool claude --prd docs/prds/prd-basic 1
+  assert_exit_code 0 "$status" "First push with upstream creation should succeed"
+  assert_contains "$output" "Ralph completed all tasks!" "Completion should still succeed after the initial push"
+}
+
 test_help_prints_usage
 test_invalid_tool_fails
 test_missing_tool_in_path_fails
@@ -202,3 +294,7 @@ test_claude_completion_exits_zero
 test_amp_is_rejected
 test_max_iterations_exit_code_is_two
 test_agent_failure_is_propagated
+test_uncommitted_changes_fail_iteration
+test_missing_upstream_fails_iteration
+test_unpushed_commits_fail_iteration
+test_first_push_with_upstream_succeeds

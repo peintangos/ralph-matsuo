@@ -58,8 +58,9 @@ Ralph Matsuo is a docs-first OSS template that treats PRD artifacts as the execu
 2. Authoritative scoped state lives under `docs/prds/prd-{slug}/`.
 3. Interactive skills or `scripts/ralph/ralph.sh` execute one todo task at a time from the active PRD.
 4. Validation commands come from `ralph.toml`; unsupported roles can stay `N/A` in the template repository.
-5. Changes land on the branch named in the PRD's `## Branch` section.
+5. Each Ralph iteration commits and pushes changes to the branch named in the PRD's `## Branch` section.
 6. Each orchestrator invocation selects at most one ready PRD, executes it, and exits.
+7. In GitHub Actions, a pull request can be created after the Ralph run completes.
 
 ## Validation Commands
 
