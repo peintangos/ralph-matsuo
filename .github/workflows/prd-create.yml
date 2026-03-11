@@ -12,7 +12,12 @@ jobs:
   # --- Job 1: LLM Content Analysis ---
   validate:
     if: github.event.label.name == 'ralph:prd-requested'
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - linux
+      - ec2
+      - claude
+      - ralph
     timeout-minutes: 10
     permissions:
       contents: read
@@ -176,7 +181,12 @@ jobs:
   create:
     needs: validate
     if: needs.validate.outputs.verdict == 'OK'
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - linux
+      - ec2
+      - claude
+      - ralph
     timeout-minutes: 30
     permissions:
       contents: write
@@ -330,17 +340,28 @@ jobs:
           PR_BODY_EOF
           sed -i 's/^          //' /tmp/pr-body.md
 
-          # Create PR
-          PR_URL=$(gh pr create \
+          # Create PR. If the repository disallows PR creation from GITHUB_TOKEN,
+          # fall back to a manual compare URL instead of failing after the branch was pushed.
+          pr_create_output="$(gh pr create \
             --title "docs: create PRD prd-${SLUG}" \
             --body-file /tmp/pr-body.md \
             --base "$default_branch" \
-            --head "$BRANCH")
+            --head "$BRANCH" 2>&1)" || pr_create_status=$?
+          pr_create_status="${pr_create_status:-0}"
 
-          echo "PR created: $PR_URL"
-
-          # Comment PR link on issue
-          gh issue comment "$ISSUE_NUMBER" --body "PRD document set generated and PR created: ${PR_URL}"
+          if [ "$pr_create_status" -eq 0 ]; then
+            PR_URL="$pr_create_output"
+            echo "PR created: $PR_URL"
+            gh issue comment "$ISSUE_NUMBER" --body "PRD document set generated and PR created: ${PR_URL}"
+          elif printf '%s' "$pr_create_output" | grep -q "Resource not accessible by integration"; then
+            MANUAL_PR_URL="https://github.com/${GITHUB_REPOSITORY}/compare/${default_branch}...${BRANCH}?expand=1"
+            echo "::warning::GitHub Actions could push branch ${BRANCH}, but could not create a pull request with GITHUB_TOKEN."
+            echo "::warning::Enable 'Allow GitHub Actions to create and approve pull requests' in Settings > Actions > General, or create the PR manually: ${MANUAL_PR_URL}"
+            gh issue comment "$ISSUE_NUMBER" --body "PRD document set was generated and pushed to branch \`${BRANCH}\`, but automatic PR creation was blocked by GitHub Actions permissions. Create the PR manually: ${MANUAL_PR_URL}"
+          else
+            echo "$pr_create_output" >&2
+            exit "$pr_create_status"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_SLUG: ${{ needs.validate.outputs.slug }}

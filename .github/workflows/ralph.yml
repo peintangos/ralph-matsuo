@@ -30,7 +30,12 @@ concurrency:
 jobs:
   orchestrate:
     if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - linux
+      - ec2
+      - claude
+      - ralph
     timeout-minutes: 360
     permissions:
       contents: write
@@ -141,13 +146,23 @@ jobs:
           commit_summary="$(git log "origin/$default_branch"..HEAD --pretty=format:'- %s' 2>/dev/null || echo '(Unable to retrieve commit log)')"
           pr_body=$'## Changes\n\n'"$commit_summary"$'\n\n---\n*This PR was automatically created by Ralph Loop*'
 
-          gh pr create \
+          pr_create_output="$(gh pr create \
             --title "$pr_title" \
             --body "$pr_body" \
             --base "$default_branch" \
-            --head "$current_branch"
+            --head "$current_branch" 2>&1)" || pr_create_status=$?
+          pr_create_status="${pr_create_status:-0}"
 
-          echo "PR created"
+          if [ "$pr_create_status" -eq 0 ]; then
+            echo "PR created: $pr_create_output"
+          elif printf '%s' "$pr_create_output" | grep -q "Resource not accessible by integration"; then
+            manual_pr_url="https://github.com/${GITHUB_REPOSITORY}/compare/${default_branch}...${current_branch}?expand=1"
+            echo "::warning::GitHub Actions pushed branch ${current_branch}, but could not create a pull request with GITHUB_TOKEN."
+            echo "::warning::Enable 'Allow GitHub Actions to create and approve pull requests' in Settings > Actions > General, or create the PR manually: ${manual_pr_url}"
+          else
+            echo "$pr_create_output" >&2
+            exit "$pr_create_status"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
