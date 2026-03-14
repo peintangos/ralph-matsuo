@@ -23,6 +23,7 @@ Ralph Matsuo is a docs-first OSS template that treats PRD artifacts as the execu
 | Headless workflow | `scripts/ralph/` | Autonomous execution path |
 | CI automation | `.github/workflows/` | PRD creation and Ralph Loop |
 | Local validation | `package.json`, `scripts/` | Repo policy and regression checks |
+| IaC (optional) | `infra/` | CDK stack for EC2 self-hosted runner |
 
 ## Repository Structure
 
@@ -46,6 +47,10 @@ Ralph Matsuo is a docs-first OSS template that treats PRD artifacts as the execu
 │   ├── ralph/
 │   ├── lint-repo.sh
 │   └── test-*.sh
+├── infra/                  (optional CDK project)
+│   ├── bin/
+│   ├── lib/
+│   └── scripts/
 └── .github/
     ├── ISSUE_TEMPLATE/
     ├── scripts/
@@ -72,5 +77,6 @@ Ralph Matsuo is a docs-first OSS template that treats PRD artifacts as the execu
 
 - Claude Code CLI (`claude`)
 - Git and optionally GitHub CLI (`gh`)
-- `ANTHROPIC_API_KEY` for GitHub Actions automation
+- `ANTHROPIC_API_KEY` for GitHub Actions automation (not needed with OAuth on self-hosted runners)
 - `jq` for Claude hook scripts
+- AWS CLI and Session Manager Plugin (optional, for EC2 runner provisioning)

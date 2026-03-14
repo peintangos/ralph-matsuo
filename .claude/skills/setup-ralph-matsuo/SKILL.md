@@ -120,7 +120,88 @@ Use the same selection rules as `/ralph-registry-setup`:
 
 If command choices are ambiguous, ask the user before writing them.
 
-### 6. Report The Result
+### 6. Runner Infrastructure Setup
+
+Ask the user:
+
+> Do you want to set up a self-hosted EC2 runner for GitHub Actions?
+>
+> - **Yes**: Provisions an EC2 instance via AWS CDK for Claude Code OAuth-based runners (requires AWS account and Claude Max/Pro subscription)
+> - **No**: Uses GitHub-hosted `ubuntu-latest` runners with `ANTHROPIC_API_KEY` secret
+
+#### If the user selects YES (EC2 self-hosted runner):
+
+1. **Check prerequisites**:
+   - Verify `aws --version` is available. If not, show installation instructions and stop.
+   - Verify `aws sts get-caller-identity` succeeds. If not, show credential configuration instructions and stop.
+   - Verify `node` and `npm` are available.
+
+2. **Bootstrap CDK** (if this is the first CDK deployment in the account/region):
+   - Run `cd infra && npx cdk bootstrap`
+
+3. **Deploy the stack**:
+   - Run `cd infra && bash scripts/deploy.sh`
+   - Parse `infra/cdk-outputs.json` to extract the Instance ID and SSM command.
+
+4. **Display post-deployment instructions** for the user to complete manually:
+
+   ```
+   EC2 instance has been provisioned. Complete the following steps:
+
+   1. Connect via Session Manager:
+      aws ssm start-session --target <instance-id>
+
+   2. Switch to the runner user:
+      sudo su - runner
+
+   3. Authenticate Claude Code (OAuth):
+      claude
+      (Open the displayed URL in your local browser to complete authentication)
+
+   4. Verify Claude works:
+      claude -p "1+1 を数値だけで答えてください。"
+
+   5. Authenticate GitHub CLI:
+      gh auth login -w
+
+   6. Register GitHub Actions self-hosted runner:
+      cd ~/actions-runner
+      (Get the latest commands from: Settings > Actions > Runners > New self-hosted runner > Linux)
+      ./config.sh --url https://github.com/<owner>/<repo> --token <token> --labels self-hosted,linux,ec2,claude,ralph
+
+   7. Start the runner as a service:
+      sudo ./svc.sh install runner
+      sudo ./svc.sh start
+      sudo ./svc.sh status
+
+   To destroy the EC2 instance later:
+      cd infra && bash scripts/destroy.sh
+   ```
+
+5. **Ensure workflow files use self-hosted labels**:
+   - Verify `.github/workflows/ralph.yml` and `.github/workflows/prd-create.yml` use `runs-on: [self-hosted, linux, ec2, claude, ralph]`.
+   - If not, update them.
+
+6. **Ensure `.github/workflows/runner-healthcheck.yml` exists** for periodic runner validation.
+
+7. **Inform the user**:
+   - `ANTHROPIC_API_KEY` repository secret is NOT needed when using OAuth.
+   - If `ANTHROPIC_API_KEY` is set, it may conflict — recommend removing it.
+
+#### If the user selects NO (GitHub-hosted ubuntu-latest):
+
+1. **Update workflow files**:
+   - Rewrite `runs-on` in `.github/workflows/ralph.yml` from the self-hosted label list to `ubuntu-latest`.
+   - Rewrite `runs-on` in `.github/workflows/prd-create.yml` (all jobs) from the self-hosted label list to `ubuntu-latest`.
+
+2. **Remove or skip healthcheck workflow**:
+   - If `.github/workflows/runner-healthcheck.yml` exists, remove it (GitHub-hosted runners do not need healthchecks).
+
+3. **Inform the user**:
+   - `ANTHROPIC_API_KEY` must be configured as a repository secret for Claude Code CLI to work in Actions.
+   - GitHub-hosted runners do not support Claude Code OAuth authentication.
+
+### 7. Report The Result
 
 Summarize:
 
@@ -129,6 +210,9 @@ Summarize:
 - the selected unit/primary test framework and command
 - whether integration or E2E coverage is required, and the selected framework and command or the reason it is `"N/A"`
 - any missing test dependencies or setup work still required before autonomous implementation is trustworthy
+- the selected runner mode (self-hosted EC2 or GitHub-hosted `ubuntu-latest`)
+  - EC2: Instance ID, SSM connection command, remaining manual steps
+  - GitHub-hosted: note that `ANTHROPIC_API_KEY` secret must be configured
 - any template areas intentionally left unchanged
 - the next recommended command, usually `/prd-create`, `/spec-create`, or `/catchup`
 

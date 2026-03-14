@@ -35,3 +35,7 @@ coverage/
 
 # Ralph lock files
 .ralph-lock
+
+# CDK
+infra/cdk.out/
+infra/node_modules/

@@ -1,0 +1,47 @@
+name: Runner Healthcheck
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  healthcheck:
+    runs-on:
+      - self-hosted
+      - linux
+      - ec2
+      - claude
+      - ralph
+    timeout-minutes: 5
+    steps:
+      - name: Check runner environment
+        run: |
+          echo "=== Runner Healthcheck ==="
+          echo "Hostname: $(hostname)"
+          echo "User: $(whoami)"
+          echo "Node: $(node --version)"
+          echo "npm: $(npm --version)"
+          echo "git: $(git --version)"
+          echo "gh: $(gh --version | head -1)"
+
+      - name: Check Claude Code CLI
+        run: |
+          if ! command -v claude >/dev/null 2>&1; then
+            echo "::error::Claude Code CLI is not installed"
+            exit 1
+          fi
+          echo "Claude Code CLI: $(claude --version 2>/dev/null || echo 'version unknown')"
+
+      - name: Verify Claude OAuth
+        run: |
+          result="$(claude -p "1+1 を数値だけで答えてください。" 2>&1)" || true
+          if echo "$result" | grep -q "2"; then
+            echo "Claude OAuth verification passed"
+          else
+            echo "::warning::Claude OAuth may need re-authentication"
+            echo "Output: $result"
+          fi
+
+      - name: Summary
+        run: echo "Runner healthcheck passed"

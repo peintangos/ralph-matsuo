@@ -171,6 +171,19 @@ If the branch named in a PRD's `## Branch` section does not exist yet, Ralph cre
 - required for this template's local validation and bundled GitHub installer path: `npm`
 - optional but used by several automated GitHub steps: `gh`
 
+### Runner options
+
+During `/setup-ralph-matsuo`, you choose how GitHub Actions runners are provisioned:
+
+| Option | Runner | Claude Auth | Secret Required |
+|--------|--------|-------------|-----------------|
+| Self-hosted EC2 | `[self-hosted, linux, ec2, claude, ralph]` | OAuth (Claude Max/Pro) | None |
+| GitHub-hosted | `ubuntu-latest` | API Key | `ANTHROPIC_API_KEY` |
+
+The EC2 option uses AWS CDK (`infra/`) to provision an Ubuntu instance with Session Manager access. After deployment, you connect via SSM to complete Claude OAuth login and GitHub Actions runner registration. See `infra/` for details.
+
+To destroy the EC2 instance: `cd infra && bash scripts/destroy.sh`
+
 ### GitHub permissions and secrets
 
 If you plan to use the bundled GitHub automation, configure the repository in `Settings -> Actions -> General -> Workflow permissions`:
@@ -180,7 +193,7 @@ If you plan to use the bundled GitHub automation, configure the repository in `S
 
 Also make sure:
 
-- `ANTHROPIC_API_KEY` is configured for Claude Code CLI automation
+- `ANTHROPIC_API_KEY` is configured for Claude Code CLI automation (not needed with OAuth on self-hosted runners)
 - the workflow token can use `contents: write`, `issues: write`, and `pull-requests: write`
 
 ### Command registry policy
@@ -213,6 +226,7 @@ This template repository keeps optional roles such as build, lint, and format as
 │   ├── ralph.sh        # single-PRD autonomous loop
 │   ├── orchestrator.sh # multi-PRD selector and runner
 │   └── CLAUDE.md       # headless-mode execution instructions
+├── infra/              # optional CDK stack for EC2 self-hosted runner
 ├── docs/
 │   ├── architecture.md
 │   ├── roadmap.md
