@@ -63,13 +63,18 @@ jobs:
 
       - name: Run Ralph
         id: ralph
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_PRD_DIR: ${{ github.event.inputs.prd_dir }}
+          INPUT_MAX_ITERATIONS: ${{ github.event.inputs.max_iterations }}
         run: |
           set +e
           RALPH_EXIT=0
-          if [ -n "${{ github.event.inputs.prd_dir }}" ]; then
+          if [ -n "$INPUT_PRD_DIR" ]; then
             # workflow_dispatch: Run directly on specified PRD
             source scripts/ralph/prd-helpers.sh
-            prd_dir="${{ github.event.inputs.prd_dir }}"
+            prd_dir="$INPUT_PRD_DIR"
             target_branch="$(get_prd_branch "$prd_dir")"
 
             if [ -z "$target_branch" ]; then
@@ -79,7 +84,7 @@ jobs:
               ./scripts/ralph/ralph.sh \
                 --tool claude \
                 --prd "$prd_dir" \
-                "${{ github.event.inputs.max_iterations }}"
+                "$INPUT_MAX_ITERATIONS"
               RALPH_EXIT=$?
             else
               RALPH_EXIT=$?
@@ -87,14 +92,11 @@ jobs:
           else
             # schedule/push: Orchestrator auto-detection
             ./scripts/ralph/orchestrator.sh \
-              --max-iterations "${{ github.event.inputs.max_iterations || '10' }}"
+              --max-iterations "${INPUT_MAX_ITERATIONS:-10}"
             RALPH_EXIT=$?
           fi
           echo "exit_code=$RALPH_EXIT" >> "$GITHUB_OUTPUT"
           exit 0
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create PR
         if: steps.ralph.outputs.exit_code == '0' || steps.ralph.outputs.exit_code == '2'
@@ -173,6 +175,8 @@ jobs:
 
       - name: Fail on Ralph runtime error
         if: steps.ralph.outputs.exit_code != '0' && steps.ralph.outputs.exit_code != '2'
+        env:
+          RALPH_EXIT_CODE: ${{ steps.ralph.outputs.exit_code }}
         run: |
-          echo "Ralph exited with code ${{ steps.ralph.outputs.exit_code }} (max iterations reached or abnormal exit)"
+          echo "Ralph exited with code $RALPH_EXIT_CODE (max iterations reached or abnormal exit)"
           exit 1
