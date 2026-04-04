@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CODEX_PROJECT_DIR/.codex/hooks/check-docs-update.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CODEX_PROJECT_DIR/.codex/hooks/format-and-lint.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CODEX_PROJECT_DIR/.codex/hooks/notify-completion.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
