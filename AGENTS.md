@@ -129,14 +129,14 @@ docs/prds/prd-{slug}/
 
 ### セッション開始
 
-1. `/catchup` を実行して現在の状態をサマリーする
+1. `$catchup` を実行して現在の状態をサマリーする
 2. ターゲット PRD の `todo.md` を読む
 3. 次のタスクが明示的で実行可能であることを確認する
 
 ### 計画フェーズ（ドキュメントのみ）
 
 以下のスキルまたはプランモードで計画アーティファクトを更新する:
-`/prd-create` / `/prd-enhance` / `/spec-create` / `/roadmap-update` / `/req-update` / `/docs-review`
+`$prd-create` / `$prd-enhance` / `$spec-create` / `$roadmap-update` / `$req-update` / `$docs-review`
 
 計画の出力は以下を持つ PRD セット:
 - `prd.md` に明確なスコープ
@@ -148,14 +148,14 @@ docs/prds/prd-{slug}/
 
 ### インタラクティブ実行サイクル
 
-1. `/catchup` で状態確認
+1. `$catchup` で状態確認
 2. PRD の `todo.md` を読んで次タスクを特定
-3. `/implement` を実行（1 タスク 1 回）
-4. `/test` でテスト実行
-5. `/build-check` があれば実行
-6. `/code-review` でレビュー
+3. `$implement` を実行（1 タスク 1 回）
+4. `$test` でテスト実行
+5. `$build-check` があれば実行
+6. `$code-review` でレビュー
 7. `progress.md`・`specifications/`・`todo.md`・`knowledge.md` を更新
-8. `/commit-push` でコミット
+8. `$commit-push` でコミット
 
 ---
 
@@ -163,16 +163,16 @@ docs/prds/prd-{slug}/
 
 | スキル | 用途 |
 |---|---|
-| `/implement` | PRD の todo から次タスクを実装する |
-| `/code-review` | 変更を 7 観点でコードレビューする |
-| `/catchup` | プロジェクト状態をサマリーする |
-| `/commit-push` | コミット・プッシュする |
-| `/test` | テスト実行（ralph.toml の test_primary） |
-| `/build-check` | ビルド・lint 確認（ralph.toml の build_check / lint_check） |
-| `/prd-create` | 新規 PRD を対話的に作成する |
-| `/spec-create` | 新規フィーチャー仕様を作成する |
-| `/docs-review` | docs/ 以下の整合性をレビューする |
-| `/roadmap-update` | roadmap.md と progress.md を更新する |
+| `$implement` | PRD の todo から次タスクを実装する |
+| `$code-review` | 変更を 7 観点でコードレビューする |
+| `$catchup` | プロジェクト状態をサマリーする |
+| `$commit-push` | コミット・プッシュする |
+| `$test` | テスト実行（ralph.toml の test_primary） |
+| `$build-check` | ビルド・lint 確認（ralph.toml の build_check / lint_check） |
+| `$prd-create` | 新規 PRD を対話的に作成する |
+| `$spec-create` | 新規フィーチャー仕様を作成する |
+| `$docs-review` | docs/ 以下の整合性をレビューする |
+| `$roadmap-update` | roadmap.md と progress.md を更新する |
 
 ---
 
