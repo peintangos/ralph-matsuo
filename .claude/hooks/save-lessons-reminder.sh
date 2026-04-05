@@ -11,7 +11,7 @@ if [ -z "$COMMAND" ]; then exit 0; fi
 
 # git push を含むコマンドのみ対象
 if echo "$COMMAND" | grep -q 'git push'; then
-  echo "git push を検出しました。/save-lessons を実行してセッションの教訓を保存してください。"
+  echo "git push を検出しました。/save-lessons を実行してセッションの教訓を保存してください。" >&2
 fi
 
 exit 0
