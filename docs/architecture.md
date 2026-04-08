@@ -41,6 +41,8 @@ Ralph Matsuo is a docs-first OSS template that treats PRD artifacts as the execu
 ├── docs/
 │   ├── architecture.md
 │   ├── roadmap.md
+│   ├── references/       # project reference materials
+│   ├── ubiquitous/       # ubiquitous language dictionary
 │   └── prds/
 │       └── _template/
 ├── scripts/

@@ -22,6 +22,8 @@ Read all of the following:
 - `docs/prds/*/knowledge.md` (all PRDs)
 - `docs/prds/*/dependencies.md` (all PRDs)
 - `docs/architecture.md`
+- `docs/ubiquitous/*.md` (ubiquitous language dictionary)
+- `docs/references/` (reference materials)
 
 ### 2. Code Consistency Check
 
@@ -36,6 +38,7 @@ Read all of the following:
 - Verify `roadmap.md` reflects the latest discussions
 - Verify PRD references in `specifications/` are correct
 - Verify `dependencies.md` dependency relationships are correct
+- Verify terminology consistency: terms used in PRDs, specifications, and code should match definitions in `docs/ubiquitous/glossary.md`
 
 ### 4. Execute Corrections
 

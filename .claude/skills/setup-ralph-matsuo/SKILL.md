@@ -27,6 +27,8 @@ Read these first:
 - `CLAUDE.md`
 - `docs/architecture.md`
 - `docs/roadmap.md`
+- `docs/references/` (if it exists)
+- `docs/ubiquitous/` (if it exists)
 - `ralph.toml`
 - `.claude/rules/*.md`
 

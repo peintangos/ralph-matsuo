@@ -65,6 +65,8 @@ Use `docs/prds/_template/` as the baseline when creating new PRDs.
 - `ralph.toml` — canonical Ralph command registry
 - `docs/architecture.md` — system architecture and control flow
 - `docs/roadmap.md` — repo-level direction and active PRDs
+- `docs/references/` — project reference materials (security audits, external research, benchmarks, etc.)
+- `docs/ubiquitous/` — project ubiquitous language dictionary (term definitions shared across the team)
 - `README.md` — public entry point
 
 ### File Roles
@@ -76,6 +78,8 @@ Use `docs/prds/_template/` as the baseline when creating new PRDs.
 - **`dependencies.md`**: records dependency order between specifications
 - **`specifications/`**: holds Gherkin-oriented specs with scenarios under `## Acceptance Criteria` and checkbox tasks under `## Implementation Steps`
 - **`ralph.toml`**: maps Ralph command roles such as tests, build checks, lint checks, and format fixes to the repository's existing commands
+- **`docs/references/`**: stores reference materials such as security audits, external documentation, research notes, and benchmarks; update when new reference material is obtained or existing material becomes outdated
+- **`docs/ubiquitous/`**: maintains the project's ubiquitous language dictionary; update when new domain terms emerge, existing terms are redefined, or ambiguity is discovered in team communication
 
 ## Workflow
 
@@ -150,3 +154,5 @@ When work changes behavior or development flow, update the relevant documents:
 - `docs/architecture.md` when structure or control flow changes
 - `docs/roadmap.md` when priorities or active tracks change
 - `README.md` when public-facing usage, setup, or automation behavior changes
+- `docs/ubiquitous/` when new domain terms are introduced or redefined
+- `docs/references/` when new reference material is obtained

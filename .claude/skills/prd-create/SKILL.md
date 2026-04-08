@@ -21,6 +21,7 @@ Use `docs/prds/_template/` as the baseline for file structure and formatting.
 Check the following:
 - Project purpose and background (confirm through conversation with user)
 - Existing documents (under `docs/`)
+- `docs/ubiquitous/glossary.md` — review existing terms to ensure terminology consistency in the new PRD
 
 ### 2. Discussion with User
 
@@ -171,4 +172,5 @@ Based on the PRD's functional requirements, split into individual specifications
 
 - Prioritize dialogue with the user; don't unilaterally draft content
 - Not all sections need to be decided at once; they can be filled in progressively
+- After creating the PRD, check if any new domain terms should be added to `docs/ubiquitous/glossary.md`
 - This skill only updates documents. No source code implementation or changes

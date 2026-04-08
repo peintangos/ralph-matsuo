@@ -230,6 +230,8 @@ This template repository keeps optional roles such as build, lint, and format as
 ├── docs/
 │   ├── architecture.md
 │   ├── roadmap.md
+│   ├── references/     # reference materials (security audits, research, etc.)
+│   ├── ubiquitous/     # ubiquitous language dictionary
 │   └── prds/
 │       └── _template/  # PRD document templates
 └── .github/workflows/

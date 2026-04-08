@@ -20,7 +20,7 @@ The target PRD path is `docs/prds/prd-{slug}/` below.
 
 ## Steps
 
-1. **Check PRD requirements**: Read `docs/prds/prd-{slug}/prd.md` and identify which PRD requirement this feature corresponds to
+1. **Check PRD requirements**: Read `docs/prds/prd-{slug}/prd.md` and identify which PRD requirement this feature corresponds to. Also read `docs/ubiquitous/glossary.md` to use consistent terminology in the specification
 2. **Check existing specifications**: Check `docs/prds/prd-{slug}/specifications/` for duplicates. Check existing spec numbers and determine the next number
 3. **Create specification**: Create `docs/prds/prd-{slug}/specifications/spec-NNN-<slug>.md` using `docs/prds/_template/specifications/spec-001-example.md` as the baseline
 4. **Update progress.md**: Add the new specification to `docs/prds/prd-{slug}/progress.md` using the exact template schema from `docs/prds/_template/progress.md`
@@ -86,4 +86,5 @@ Feature: [Feature Name]
 - `progress.md` must keep one row per specification file; do not invent alternate table layouts
 - `todo.md` executable tasks must remain unchecked checkbox lines (`- [ ]`)
 - Always include a review step (build check + lint + `/code-review`) at the end of implementation steps
+- After creating the specification, check if any new domain terms should be added to `docs/ubiquitous/glossary.md`
 - This skill only updates documents. No source code implementation or changes

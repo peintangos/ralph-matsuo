@@ -19,6 +19,7 @@ Read the following files to understand the current project state:
 4. `{{PRD_DIR}}/todo.md` — Next tasks
 5. `{{PRD_DIR}}/dependencies.md` — Specification dependencies and implementation order
 6. `ralph.toml` — Canonical command registry, if it exists
+7. `docs/ubiquitous/` — Project ubiquitous language dictionary (if it exists)
 
 ## Phase 2: Task Selection
 

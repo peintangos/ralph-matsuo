@@ -31,6 +31,8 @@ Read all of the following:
 - `docs/prds/prd-{slug}/dependencies.md` (if exists)
 - `docs/roadmap.md`
 - `docs/architecture.md`
+- `docs/ubiquitous/glossary.md` (if exists)
+- `docs/references/` (if exists)
 
 ## 2. Codebase Investigation
 

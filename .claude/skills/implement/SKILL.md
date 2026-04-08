@@ -29,6 +29,7 @@ The target PRD path is `docs/prds/prd-{slug}/` below.
 
 - Identify and read the related specification (`docs/prds/prd-{slug}/specifications/`)
 - Check `docs/prds/prd-{slug}/knowledge.md` if it exists
+- Read `docs/ubiquitous/glossary.md` if it exists to align on project terminology
 - Investigate related source code using Grep / Glob
 
 ### 3. Implement

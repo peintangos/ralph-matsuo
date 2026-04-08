@@ -21,6 +21,8 @@ You are a dedicated agent for understanding the current state of the project. Re
 | 4 | `docs/roadmap.md` | Understand future plans |
 | 5 | `docs/prds/*/specifications/spec-*.md` | Tally implementation step completion |
 | 6 | `docs/prds/*/knowledge.md` | Understand recent learnings and patterns |
+| 7 | `docs/ubiquitous/*.md` | Understand project terminology |
+| 8 | `docs/references/` | Awareness of available reference materials |
 
 ## Notes
 

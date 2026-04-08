@@ -30,6 +30,11 @@ List `docs/prds/*/specifications/spec-*.md` using Glob, then Read each specifica
 
 Search for `docs/prds/*/knowledge.md` using Glob, and Read if they exist. Understand reusable patterns and notes.
 
+## 5.5. Check Ubiquitous Language & References
+
+- Read `docs/ubiquitous/*.md` if it exists. Understand project terminology.
+- Check `docs/references/` for awareness of available reference materials.
+
 ## 6. Output Summary and Suggestions
 
 Output results in the following format (show progress per PRD):

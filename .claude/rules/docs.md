@@ -26,6 +26,8 @@ docs/prds/prd-{slug}/
 
 - `docs/architecture.md` — System architecture (update when structure changes)
 - `docs/roadmap.md` — Project roadmap (vision and plans)
+- `docs/references/` — Project reference materials (update when new material is obtained or existing material becomes outdated)
+- `docs/ubiquitous/` — Ubiquitous language dictionary (update when new domain terms emerge or existing definitions change)
 
 ## Completion Checklist
 
@@ -35,6 +37,8 @@ docs/prds/prd-{slug}/
 - [ ] Update `docs/roadmap.md` if vision or plans are affected
 - [ ] Remove completed tasks from the target PRD's `todo.md` and add next tasks
 - [ ] Add reusable patterns to `knowledge.md`
+- [ ] Update `docs/ubiquitous/` if new domain terms were introduced or existing terms were redefined
+- [ ] Update `docs/references/` if new reference material was obtained during the work
 
 ## README.md
 

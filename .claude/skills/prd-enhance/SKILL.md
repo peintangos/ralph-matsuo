@@ -23,6 +23,7 @@ Read the following documents to understand the current state:
 - `docs/roadmap.md`
 - `docs/prds/*/progress.md` (all PRDs)
 - `docs/prds/*/specifications/spec-*.md` (all PRDs)
+- `docs/ubiquitous/glossary.md` — review existing terms for terminology consistency
 
 ### 2. Discussion with User
 
@@ -138,4 +139,5 @@ Use only these status values: `pending`, `in-progress`, `done`
 
 - Prioritize dialogue with the user; don't unilaterally draft content
 - Maintain consistency with existing PRDs
+- After creating the new PRD, check if any new domain terms should be added to `docs/ubiquitous/glossary.md`
 - This skill only updates documents. No source code implementation or changes
