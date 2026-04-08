@@ -1,7 +1,7 @@
 name: Ralph Loop
 
 on:
-  # Manual trigger (for debugging and individual runs)
+  # Manual trigger only (schedule and push triggers are disabled by default)
   workflow_dispatch:
     inputs:
       prd_dir:
@@ -13,15 +13,6 @@ on:
         required: false
         default: '10'
 
-  # Scheduled scan (daily at UTC 0:00)
-  schedule:
-    - cron: '0 0 * * *'
-
-  # Trigger on PRD changes
-  push:
-    paths:
-      - 'docs/prds/**'
-
 # Prevent concurrent runs
 concurrency:
   group: ralph-loop
@@ -29,7 +20,7 @@ concurrency:
 
 jobs:
   orchestrate:
-    if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
+    # When re-enabling push/schedule triggers, restore: if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
     runs-on:
       - self-hosted
       - linux
