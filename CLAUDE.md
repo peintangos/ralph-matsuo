@@ -118,9 +118,10 @@ Expected cycle:
 2. implement the task and add or update tests
 3. run `/test`
 4. run `/build-check` if the repository defines build or lint commands
-5. run `/code-review`
-6. update `progress.md`, `specifications/`, `todo.md`, and `knowledge.md`
-7. commit with `/commit-push`
+5. **if the change affects web UI** (pages, components, styles, layouts), use `chrome-devtools` MCP to visually verify the rendered output — check for image loading, layout clipping, overflow, border rendering, and responsive breakpoints
+6. run `/code-review`
+7. update `progress.md`, `specifications/`, `todo.md`, and `knowledge.md`
+8. commit with `/commit-push`
 
 ### Autonomous Execution (Ralph Loop)
 

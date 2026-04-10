@@ -153,9 +153,10 @@ docs/prds/prd-{slug}/
 3. `$implement` を実行（1 タスク 1 回）
 4. `$test` でテスト実行
 5. `$build-check` があれば実行
-6. `$code-review` でレビュー
-7. `progress.md`・`specifications/`・`todo.md`・`knowledge.md` を更新
-8. `$commit-push` でコミット
+6. **Web UI に影響する変更の場合**: `chrome-devtools` MCP でブラウザ上の表示を目視確認する（画像表示・レイアウト崩れ・overflow・border 描画・レスポンシブ対応）
+7. `$code-review` でレビュー
+8. `progress.md`・`specifications/`・`todo.md`・`knowledge.md` を更新
+9. `$commit-push` でコミット
 
 ---
 

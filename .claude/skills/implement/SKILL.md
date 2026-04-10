@@ -43,8 +43,12 @@ Execute the following in order:
 
 1. Run `/test` to execute tests
 2. Run `/build-check` to run build and lint checks
-3. Run `/code-review` to conduct code review
-4. If there are findings, fix them and re-review as needed
+3. **If the change affects web UI** (pages, components, styles, layouts), use `chrome-devtools` MCP to verify the rendered output visually:
+   - Navigate to the relevant page and take a screenshot
+   - Check for visual issues: images not loading, layout clipping, overflow, border rendering, responsive breakpoints
+   - Fix any visual defects before proceeding
+4. Run `/code-review` to conduct code review
+5. If there are findings, fix them and re-review as needed
 
 ### 5. Update Records
 
