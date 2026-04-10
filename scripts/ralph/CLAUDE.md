@@ -80,17 +80,19 @@ Run all relevant non-test validation commands, such as:
 If a validation category is not defined or not applicable, note it and continue.
 Fix any failures before proceeding.
 
-### Step 4: Code Review (Self-Review)
+### Step 4: Code Review (Codex Review)
 
-Check changes with `git diff HEAD` and review from the following **7 perspectives**:
+Delegate the code review to Codex using the Agent tool:
 
-1. **Correctness**: Any bugs or logic errors?
-2. **Security**: Any stack-appropriate vulnerabilities around input handling, authorization, secrets, unsafe execution, or trust boundaries?
-3. **Performance**: Any avoidable hot-path inefficiencies, repeated work, excessive I/O, or other stack-appropriate bottlenecks?
-4. **Readability**: Are naming, structure, and comments appropriate?
-5. **Convention compliance**: Does it follow rules in `.claude/rules/`?
-6. **Spec compliance**: Does it meet the specification's acceptance criteria?
-7. **Testing**: Is test coverage and quality sufficient?
+```
+Agent({
+  subagent_type: "codex:codex-rescue",
+  description: "Code review for current changes",
+  prompt: "Review the changes shown by `git diff HEAD` in this repository. Read changed files and `.claude/rules/*.md` for project conventions. Review from these 7 perspectives: (1) Correctness — bugs or logic errors, (2) Security — input handling, authorization, secrets, unsafe execution, trust boundaries, (3) Performance — hot-path inefficiencies, repeated work, excessive I/O, (4) Readability — naming, structure, comments, (5) Convention compliance — project rules in .claude/rules/, (6) Spec compliance — acceptance criteria from docs/prds/*/specifications/, (7) Testing — coverage and quality. Report findings as Must Fix / Should Fix / Nice to Have with file:line references."
+})
+```
+
+If the Agent tool is unavailable in the current runtime, fall back to self-review: check changes with `git diff HEAD` and review from the same 7 perspectives listed above.
 
 ### Decision Based on Review Results
 
