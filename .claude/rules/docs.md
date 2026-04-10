@@ -35,7 +35,7 @@ docs/prds/prd-{slug}/
 - [ ] Update acceptance criteria and implementation steps in related `specifications/`
 - [ ] Update `docs/architecture.md` if structural changes were made
 - [ ] Update `docs/roadmap.md` if vision or plans are affected
-- [ ] Remove completed tasks from the target PRD's `todo.md` and add next tasks
+- [ ] Mark completed tasks in the target PRD's `todo.md` as `- [x]` and add next tasks
 - [ ] Add reusable patterns to `knowledge.md`
 - [ ] Update `docs/ubiquitous/` if new domain terms were introduced or existing terms were redefined
 - [ ] Update `docs/references/` if new reference material was obtained during the work

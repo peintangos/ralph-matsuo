@@ -49,7 +49,7 @@ Execute the following in order:
 ### 5. Update Records
 
 - Check off the completed implementation step checkboxes in the related specification
-- Remove the completed task line from `docs/prds/prd-{slug}/todo.md` and keep remaining executable tasks as unchecked `- [ ]` lines
+- Mark the completed task in `docs/prds/prd-{slug}/todo.md` as `- [x]` (do not remove it) and keep remaining executable tasks as unchecked `- [ ]` lines
 - Update `docs/prds/prd-{slug}/progress.md` using the exact template schema
   - If all acceptance criteria for that specification are complete, mark the progress row as `done` and fill in the completion date
   - Otherwise mark the progress row as `in-progress` and leave the completion date blank

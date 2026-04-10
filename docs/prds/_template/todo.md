@@ -3,7 +3,7 @@
 <!--
 Keep tasks in priority order.
 Each unchecked task should be small enough to complete in one `/implement` run or one Ralph iteration.
-Remove completed tasks instead of keeping a checked-off history.
+Mark completed tasks with `- [x]` instead of removing them.
 -->
 
 - [ ] spec-001: [first executable task]

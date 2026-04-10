@@ -74,7 +74,7 @@ Use `docs/prds/_template/` as the baseline when creating new PRDs.
 - **`prd.md`**: defines the delivery scope and target branch in `## Branch`
 - **`knowledge.md`**: stores reusable patterns, integration notes, and non-obvious lessons; do not use it as a task diary
 - **`progress.md`**: tracks specification status using the exact values `pending`, `in-progress`, or `done`, with the exact columns `Specification | Title | Status | Completed On | Notes` and one row per specification file
-- **`todo.md`**: lists executable tasks in priority order using unchecked checkbox lines (`- [ ]`); each unchecked task should be small enough for one `/implement` run or one Ralph iteration
+- **`todo.md`**: lists executable tasks in priority order using checkbox lines; unchecked (`- [ ]`) tasks are pending, checked (`- [x]`) tasks are completed; each task should be small enough for one `/implement` run or one Ralph iteration
 - **`dependencies.md`**: records dependency order between specifications
 - **`specifications/`**: holds Gherkin-oriented specs with scenarios under `## Acceptance Criteria` and checkbox tasks under `## Implementation Steps`
 - **`ralph.toml`**: maps Ralph command roles such as tests, build checks, lint checks, and format fixes to the repository's existing commands

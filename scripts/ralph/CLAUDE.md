@@ -102,7 +102,7 @@ Check changes with `git diff HEAD` and review from the following **7 perspective
 
 After implementation is complete, update the following documents:
 
-1. **todo.md**: Remove completed tasks. Add next tasks if any
+1. **todo.md**: Mark completed tasks as `- [x]` (do not remove them). Add next tasks if any
 2. **knowledge.md**: Add reusable patterns or notes (only general ones)
 3. **specification**: Update relevant implementation step checkboxes (`- [x]`). Keep the Gherkin acceptance criteria accurate; do not rewrite the specification into a different template
 4. **progress.md**: Update the specification to `done` **only if ALL acceptance criteria are complete** (fill in completion date). Otherwise update to `in-progress` and leave the completion date blank
