@@ -14,6 +14,23 @@ Receives the PRD slug as an argument: `$ARGUMENTS`
 Interactively create the initial MVP PRD for a new project and generate a complete document set under `docs/prds/prd-{slug}/`.
 Use `docs/prds/_template/` as the baseline for file structure and formatting.
 
+## Prerequisites
+
+### Verify Repository Initialization
+
+Before starting PRD creation, confirm that the project is backed by a git repository with a remote configured.
+
+1. Check git initialization:
+   - Run `git rev-parse --is-inside-work-tree` (or check for a `.git` directory)
+2. Check remote repository:
+   - Run `git remote -v` and confirm at least one remote (typically `origin`) exists
+3. If either check fails:
+   - Stop PRD creation and invoke the `init-repo` skill to initialize git and create the remote repository
+   - After `init-repo` completes, return here and continue with `## Steps`
+4. If both checks pass, proceed directly to `## Steps`
+
+Rationale: PRD artifacts (`docs/prds/prd-{slug}/`), roadmap updates, and README changes are meant to be version-controlled and pushed. Creating them before the repository exists risks losing work and breaks the downstream Ralph Loop workflow, which assumes a branch can be created and pushed from `prd.md`'s `## Branch`.
+
 ## Steps
 
 ### 1. Assess Current State
