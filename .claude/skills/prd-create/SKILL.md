@@ -27,9 +27,25 @@ Before starting PRD creation, confirm that the project is backed by a git reposi
 3. If either check fails:
    - Stop PRD creation and invoke the `init-repo` skill to initialize git and create the remote repository
    - After `init-repo` completes, return here and continue with `## Steps`
-4. If both checks pass, proceed directly to `## Steps`
+4. If both checks pass, proceed to the next prerequisite
 
 Rationale: PRD artifacts (`docs/prds/prd-{slug}/`), roadmap updates, and README changes are meant to be version-controlled and pushed. Creating them before the repository exists risks losing work and breaks the downstream Ralph Loop workflow, which assumes a branch can be created and pushed from `prd.md`'s `## Branch`.
+
+### Confirm Security Scan Workflow
+
+The template ships with `.github/workflows/security-scan.yml`, which runs `npm audit`, Semgrep, and Snyk on a weekly schedule and on dependency changes. Before continuing, decide whether this project needs it.
+
+1. Check whether `.github/workflows/security-scan.yml` exists.
+   - If it does **not** exist, skip this prerequisite (the user already made a decision in a previous run).
+2. If it exists, ask the user explicitly:
+   - "This repository includes `security-scan.yml` (npm audit + Semgrep + Snyk). Enable it for this project, or disable it?"
+   - Briefly summarize what each scanner covers and that Snyk requires `SNYK_TOKEN` as an Actions secret to run.
+3. Apply the choice:
+   - **Enable**: leave the file in place. If the project does not have a `package.json` / `package-lock.json`, warn the user that `npm audit` and Snyk jobs will fail until those files exist, and offer to narrow the `paths:` triggers or remove those jobs.
+   - **Disable**: delete `.github/workflows/security-scan.yml` (do not comment out — keep the workflows directory clean). Tell the user they can restore it from the template later if needed.
+4. Do not create a commit at this point. The deletion (if any) will be picked up by the normal commit flow at the end of PRD creation.
+
+Rationale: keeping or removing CI security scans is a project-wide decision, not a per-PRD one, but `/prd-create` is the first interactive entry point for a fresh template clone, so it is the natural place to surface the choice. Asking once and gating on file existence avoids re-prompting on later `/prd-create` invocations.
 
 ## Steps
 
