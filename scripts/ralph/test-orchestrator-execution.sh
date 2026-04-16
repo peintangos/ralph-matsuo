@@ -191,7 +191,7 @@ test_first_ready_prd_runs_and_switches_branch() {
   assert_contains "$output" "PRD: prd-alpha" "The first ready PRD should be selected"
   assert_contains "$output" "Branch: ralph/alpha" "The selected PRD branch should be reported"
   assert_contains "$output" "Switching branch: main -> ralph/alpha" "Branch switching should occur when needed"
-  assert_contains "$output" "Starting ralph.sh..." "orchestrator should start ralph.sh"
+  assert_contains "$output" "Starting ralph.sh (tool: claude)..." "orchestrator should start ralph.sh"
   assert_contains "$git_output" "checkout ralph/alpha" "git checkout should target the PRD branch"
   assert_contains "$ralph_output" "tool=claude" "orchestrator should invoke ralph.sh with the claude tool"
   assert_contains "$ralph_output" "prd=$repo_dir/docs/prds/prd-alpha" "orchestrator should pass the selected PRD path"

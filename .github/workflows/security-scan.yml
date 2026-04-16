@@ -32,7 +32,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for lockfile
+        id: check
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "has_lockfile=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Node.js
+        if: steps.check.outputs.has_lockfile == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -40,9 +48,11 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
+        if: steps.check.outputs.has_lockfile == 'true'
         run: npm ci --ignore-scripts
 
       - name: Run npm audit
+        if: steps.check.outputs.has_lockfile == 'true'
         run: npm audit --audit-level=high
 
   semgrep:
@@ -73,6 +83,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for lockfile
+        id: check
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "has_lockfile=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Explain skipped Snyk scan
         if: ${{ env.SNYK_TOKEN == '' }}
         run: |
@@ -80,7 +97,7 @@ jobs:
           echo "Add SNYK_TOKEN to GitHub Actions secrets to enable the Snyk job."
 
       - name: Setup Node.js
-        if: ${{ env.SNYK_TOKEN != '' }}
+        if: ${{ env.SNYK_TOKEN != '' && steps.check.outputs.has_lockfile == 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -88,13 +105,13 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        if: ${{ env.SNYK_TOKEN != '' }}
+        if: ${{ env.SNYK_TOKEN != '' && steps.check.outputs.has_lockfile == 'true' }}
         run: npm ci --ignore-scripts
 
       - name: Install Snyk CLI
-        if: ${{ env.SNYK_TOKEN != '' }}
+        if: ${{ env.SNYK_TOKEN != '' && steps.check.outputs.has_lockfile == 'true' }}
         run: npm install --global snyk
 
       - name: Run Snyk test
-        if: ${{ env.SNYK_TOKEN != '' }}
+        if: ${{ env.SNYK_TOKEN != '' && steps.check.outputs.has_lockfile == 'true' }}
         run: snyk test --severity-threshold=high

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Ralph Orchestrator - Scans PRDs, determines status, and runs ralph.sh accordingly
-# Usage: ./orchestrator.sh [--max-iterations N] [--dry-run]
+# Usage: ./orchestrator.sh [--tool <claude|codex>] [--max-iterations N] [--dry-run]
 
 set -euo pipefail
 
@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PRDS_DIR="$REPO_ROOT/docs/prds"
 MAX_ITERATIONS=10
+TOOL="claude"
 DRY_RUN=false
 
 # shellcheck source=./scripts/ralph/prd-helpers.sh
@@ -16,6 +17,14 @@ source "$SCRIPT_DIR/prd-helpers.sh"
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --tool)
+      TOOL="$2"
+      shift 2
+      ;;
+    --tool=*)
+      TOOL="${1#*=}"
+      shift
+      ;;
     --max-iterations)
       MAX_ITERATIONS="$2"
       shift 2
@@ -29,11 +38,12 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help|-h)
-      echo "Usage: ./orchestrator.sh [--max-iterations N] [--dry-run]"
+      echo "Usage: ./orchestrator.sh [--tool <claude|codex>] [--max-iterations N] [--dry-run]"
       echo ""
       echo "Options:"
-      echo "  --max-iterations N   Max iterations for ralph.sh (default: 10)"
-      echo "  --dry-run            Only check status, do not run ralph.sh"
+      echo "  --tool <claude|codex> AI tool to use (default: claude)"
+      echo "  --max-iterations N    Max iterations for ralph.sh (default: 10)"
+      echo "  --dry-run             Only check status, do not run ralph.sh"
       exit 0
       ;;
     *)
@@ -484,8 +494,8 @@ main() {
     fi
   fi
 
-  log "Starting ralph.sh..."
-  "$SCRIPT_DIR/ralph.sh" --tool claude --prd "$target_prd" "$MAX_ITERATIONS"
+  log "Starting ralph.sh (tool: $TOOL)..."
+  "$SCRIPT_DIR/ralph.sh" --tool "$TOOL" --prd "$target_prd" "$MAX_ITERATIONS"
   local exit_code=$?
 
   exit $exit_code

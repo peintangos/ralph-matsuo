@@ -130,6 +130,10 @@ Ask the user:
 >
 > - **Yes**: Provisions an EC2 instance via AWS CDK for Claude Code OAuth-based runners (requires AWS account and Claude Max/Pro subscription)
 > - **No**: Uses GitHub-hosted `ubuntu-latest` runners with `ANTHROPIC_API_KEY` secret
+>
+> Ralph switches runner mode through the repository Actions variable `RALPH_RUNS_ON_JSON`:
+> - unset or `["self-hosted","linux","ec2","claude","ralph"]` for self-hosted EC2
+> - `"ubuntu-latest"` for GitHub-hosted
 
 #### If the user selects YES (EC2 self-hosted runner):
 
@@ -180,9 +184,10 @@ Ask the user:
       cd infra && bash scripts/destroy.sh
    ```
 
-5. **Ensure workflow files use self-hosted labels**:
-   - Verify `.github/workflows/ralph.yml` and `.github/workflows/prd-create.yml` use `runs-on: [self-hosted, linux, ec2, claude, ralph]`.
-   - If not, update them.
+5. **Ensure runner mode variable is configured**:
+   - Go to `Settings > Secrets and variables > Actions > Variables`.
+   - Leave `RALPH_RUNS_ON_JSON` unset, or set it to `["self-hosted","linux","ec2","claude","ralph"]`.
+   - Do not rewrite workflow files just to switch runner mode.
 
 6. **Ensure `.github/workflows/runner-healthcheck.yml` exists** for periodic runner validation.
 
@@ -192,12 +197,12 @@ Ask the user:
 
 #### If the user selects NO (GitHub-hosted ubuntu-latest):
 
-1. **Update workflow files**:
-   - Rewrite `runs-on` in `.github/workflows/ralph.yml` from the self-hosted label list to `ubuntu-latest`.
-   - Rewrite `runs-on` in `.github/workflows/prd-create.yml` (all jobs) from the self-hosted label list to `ubuntu-latest`.
+1. **Set the runner mode variable**:
+   - Go to `Settings > Secrets and variables > Actions > Variables`.
+   - Set `RALPH_RUNS_ON_JSON` to the JSON string `"ubuntu-latest"`.
 
-2. **Remove or skip healthcheck workflow**:
-   - If `.github/workflows/runner-healthcheck.yml` exists, remove it (GitHub-hosted runners do not need healthchecks).
+2. **Leave healthcheck workflow in place**:
+   - `.github/workflows/runner-healthcheck.yml` auto-skips unless the configured runner contains `self-hosted`.
 
 3. **Inform the user**:
    - `ANTHROPIC_API_KEY` must be configured as a repository secret for Claude Code CLI to work in Actions.

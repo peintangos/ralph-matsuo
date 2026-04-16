@@ -37,7 +37,7 @@ Ralph Matsuo は Claude Code と Ralph Loop 向けの **docs-first OSS テンプ
 - Languages: Markdown, Bash, YAML, TOML
 - Package manager: npm
 - Automation: Git, GitHub Actions, Claude Code CLI / Codex CLI
-- 検証エントリーポイント: `npm test`, `npm run test:doc-contracts`, `npm run test:orchestrator`, `npm run lint:repo`
+- 検証エントリーポイント: `npm test`, `npm run test:doc-contracts`, `npm run test:orchestrator`, `npm run lint:repo`, `npm run lint:shell`, `npm run lint:actions`
 
 ### プロジェクトコマンドレジストリ（ralph.toml）
 
@@ -117,7 +117,7 @@ docs/prds/prd-{slug}/
 **完了チェックリスト（タスク完了後に必ず実施）:**
 - [ ] 仕様書の該当実装ステップをチェック済みにする
 - [ ] `progress.md` のステータスを更新（完了日も記入）
-- [ ] 完了タスクを `todo.md` から削除し、残りを未チェックのまま維持
+- [ ] 完了タスクを `todo.md` で `- [x]` にし、残りを未チェックのまま維持
 - [ ] `knowledge.md` に再利用可能なパターンを追記
 - [ ] 構造変更があれば `docs/architecture.md` を更新
 - [ ] 優先度変更があれば `docs/roadmap.md` を更新

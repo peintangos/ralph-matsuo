@@ -1,6 +1,6 @@
 #!/bin/bash
 # Ralph Wiggum - Long-running AI agent loop (Specification-Driven)
-# Usage: ./ralph.sh --tool claude --prd <prd_dir> [max_iterations]
+# Usage: ./ralph.sh --tool <claude|codex> --prd <prd_dir> [max_iterations]
 #
 # Exit codes:
 #   0 = all tasks complete
@@ -34,15 +34,16 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help|-h)
-      echo "Usage: ./ralph.sh --tool claude --prd <prd_dir> [max_iterations]"
+      echo "Usage: ./ralph.sh --tool <claude|codex> --prd <prd_dir> [max_iterations]"
       echo ""
       echo "Options:"
-      echo "  --tool <claude>       AI tool to use (default: claude)"
+      echo "  --tool <claude|codex> AI tool to use (default: claude)"
       echo "  --prd <prd_dir>       Path to PRD directory (required)"
       echo "  max_iterations        Maximum number of iterations (default: 10)"
       echo ""
-      echo "Example:"
+      echo "Examples:"
       echo "  ./ralph.sh --tool claude --prd docs/prds/prd-my-feature 5"
+      echo "  ./ralph.sh --tool codex --prd docs/prds/prd-my-feature 5"
       exit 0
       ;;
     *)
@@ -55,8 +56,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate tool choice
-if [[ "$TOOL" != "claude" ]]; then
-  echo "Error: Invalid tool '$TOOL'. Must be 'claude'."
+if [[ "$TOOL" != "claude" && "$TOOL" != "codex" ]]; then
+  echo "Error: Invalid tool '$TOOL'. Must be 'claude' or 'codex'."
   exit 1
 fi
 
@@ -68,7 +69,7 @@ fi
 # Validate PRD directory
 if [[ -z "$PRD_DIR" ]]; then
   echo "Error: --prd option is required."
-  echo "Usage: ./ralph.sh --tool claude --prd <prd_dir> [max_iterations]"
+  echo "Usage: ./ralph.sh --tool <claude|codex> --prd <prd_dir> [max_iterations]"
   exit 1
 fi
 
@@ -83,7 +84,19 @@ if [[ ! -f "$PRD_DIR/prd.md" ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROMPT_TEMPLATE="$(<"$SCRIPT_DIR/CLAUDE.md")"
+
+# Select prompt template based on tool
+PROMPT_FILE="$SCRIPT_DIR/CLAUDE.md"
+if [[ "$TOOL" == "codex" ]]; then
+  PROMPT_FILE="$SCRIPT_DIR/CODEX.md"
+fi
+
+if [[ ! -f "$PROMPT_FILE" ]]; then
+  echo "Error: Prompt template '$PROMPT_FILE' not found."
+  exit 1
+fi
+
+PROMPT_TEMPLATE="$(<"$PROMPT_FILE")"
 PROMPT="${PROMPT_TEMPLATE//\{\{PRD_DIR\}\}/$PRD_DIR}"
 RUN_OUTPUT=""
 
@@ -161,10 +174,18 @@ run_agent() {
 
   tmp_output="$(mktemp)"
 
-  if printf '%s\n' "$prompt" | claude --dangerously-skip-permissions --print 2>&1 | tee "$tmp_output" >&2; then
-    exit_code=0
-  else
-    exit_code=$?
+  if [[ "$TOOL" == "claude" ]]; then
+    if printf '%s\n' "$prompt" | claude --dangerously-skip-permissions --print 2>&1 | tee "$tmp_output" >&2; then
+      exit_code=0
+    else
+      exit_code=$?
+    fi
+  elif [[ "$TOOL" == "codex" ]]; then
+    if printf '%s\n' "$prompt" | codex exec --dangerously-bypass-approvals-and-sandbox 2>&1 | tee "$tmp_output" >&2; then
+      exit_code=0
+    else
+      exit_code=$?
+    fi
   fi
 
   RUN_OUTPUT="$(cat "$tmp_output")"

@@ -8,7 +8,7 @@ source "$SCRIPT_DIR/test-helpers.sh"
 setup_ralph_repo() {
   local repo_dir="$1"
 
-  setup_repo "$repo_dir" ralph.sh CLAUDE.md
+  setup_repo "$repo_dir" ralph.sh CLAUDE.md CODEX.md
 }
 
 create_basic_prd() {
@@ -37,7 +37,7 @@ test_help_prints_usage() {
 
   capture_repo_command output status "$repo_dir" "$BASH" scripts/ralph/ralph.sh --help
   assert_exit_code 0 "$status" "Help should exit successfully"
-  assert_contains "$output" "Usage: ./ralph.sh --tool claude --prd <prd_dir> [max_iterations]" "Help should describe usage"
+  assert_contains "$output" "Usage: ./ralph.sh --tool <claude|codex> --prd <prd_dir> [max_iterations]" "Help should describe usage"
 }
 
 test_invalid_tool_fails() {
@@ -48,7 +48,7 @@ test_invalid_tool_fails() {
 
   capture_repo_command output status "$repo_dir" "$BASH" scripts/ralph/ralph.sh --tool invalid
   assert_exit_code 1 "$status" "Invalid tool should fail"
-  assert_contains "$output" "Error: Invalid tool 'invalid'. Must be 'claude'." "Invalid tool error should be reported"
+  assert_contains "$output" "Error: Invalid tool 'invalid'. Must be 'claude' or 'codex'." "Invalid tool error should be reported"
 }
 
 test_missing_tool_in_path_fails() {
@@ -138,6 +138,26 @@ EOF
   assert_contains "$output" "Completed at iteration 1 of 3" "Completion should happen on the first iteration"
 }
 
+test_codex_completion_exits_zero() {
+  local repo_dir stub_dir output status
+  repo_dir="$(mktemp -d)"
+  stub_dir="$(mktemp -d)"
+  trap 'rm -rf "$repo_dir" "$stub_dir"' RETURN
+  setup_ralph_repo "$repo_dir"
+  create_basic_prd "$repo_dir"
+  setup_git_repo_with_upstream "$repo_dir" "ralph/test"
+
+  create_stub_command "$stub_dir" codex <<'EOF'
+#!/bin/bash
+printf '<promise>COMPLETE</promise>\n'
+EOF
+
+  capture_repo_command output status "$repo_dir" env PATH="$stub_dir:$PATH" "$BASH" scripts/ralph/ralph.sh --tool codex --prd docs/prds/prd-basic 3
+  assert_exit_code 0 "$status" "Codex completion should succeed"
+  assert_contains "$output" "Ralph completed all tasks!" "Completion signal should stop the loop"
+  assert_contains "$output" "Completed at iteration 1 of 3" "Completion should happen on the first iteration"
+}
+
 test_amp_is_rejected() {
   local repo_dir stub_dir output status
   repo_dir="$(mktemp -d)"
@@ -148,7 +168,7 @@ test_amp_is_rejected() {
 
   capture_repo_command output status "$repo_dir" env PATH="$stub_dir:$PATH" "$BASH" scripts/ralph/ralph.sh --tool amp
   assert_exit_code 1 "$status" "Amp should be rejected"
-  assert_contains "$output" "Error: Invalid tool 'amp'. Must be 'claude'." "Amp should be reported as an invalid tool"
+  assert_contains "$output" "Error: Invalid tool 'amp'. Must be 'claude' or 'codex'." "Amp should be reported as an invalid tool"
 }
 
 test_max_iterations_exit_code_is_two() {
@@ -291,6 +311,7 @@ test_missing_prd_option_fails
 test_missing_prd_directory_fails
 test_missing_prd_file_fails
 test_claude_completion_exits_zero
+test_codex_completion_exits_zero
 test_amp_is_rejected
 test_max_iterations_exit_code_is_two
 test_agent_failure_is_propagated

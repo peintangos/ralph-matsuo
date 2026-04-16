@@ -1,9 +1,16 @@
 name: Ralph Loop
 
 on:
-  # Manual trigger only (schedule and push triggers are disabled by default)
   workflow_dispatch:
     inputs:
+      tool:
+        description: 'AI tool to use'
+        required: false
+        default: 'claude'
+        type: choice
+        options:
+          - claude
+          - codex
       prd_dir:
         description: 'PRD directory path (e.g., docs/prds/prd-my-feature). Leave empty for Orchestrator auto-detection'
         required: false
@@ -20,13 +27,7 @@ concurrency:
 
 jobs:
   orchestrate:
-    # When re-enabling push/schedule triggers, restore: if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
-    runs-on:
-      - self-hosted
-      - linux
-      - ec2
-      - claude
-      - ralph
+    runs-on: ${{ fromJSON(vars.RALPH_RUNS_ON_JSON != '' && vars.RALPH_RUNS_ON_JSON || '["self-hosted","linux","ec2","claude","ralph"]') }}
     timeout-minutes: 360
     permissions:
       contents: write
@@ -43,6 +44,8 @@ jobs:
 
       - name: Install agent runtime
         run: bash .github/scripts/install-agent-runtime.sh
+        env:
+          INPUT_TOOL: ${{ github.event.inputs.tool || 'claude' }}
 
       - name: Project bootstrap
         run: bash .github/scripts/setup-project-env.sh
@@ -56,7 +59,9 @@ jobs:
         id: ralph
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TOOL: ${{ github.event.inputs.tool || 'claude' }}
           INPUT_PRD_DIR: ${{ github.event.inputs.prd_dir }}
           INPUT_MAX_ITERATIONS: ${{ github.event.inputs.max_iterations }}
         run: |
@@ -73,7 +78,7 @@ jobs:
               RALPH_EXIT=1
             elif ensure_checked_out_branch "$target_branch"; then
               ./scripts/ralph/ralph.sh \
-                --tool claude \
+                --tool "$INPUT_TOOL" \
                 --prd "$prd_dir" \
                 "$INPUT_MAX_ITERATIONS"
               RALPH_EXIT=$?
@@ -83,6 +88,7 @@ jobs:
           else
             # schedule/push: Orchestrator auto-detection
             ./scripts/ralph/orchestrator.sh \
+              --tool "$INPUT_TOOL" \
               --max-iterations "${INPUT_MAX_ITERATIONS:-10}"
             RALPH_EXIT=$?
           fi

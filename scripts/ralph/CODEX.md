@@ -1,9 +1,11 @@
-# Ralph Agent Instructions (Specification-Driven Workflow)
+# Ralph Agent Instructions — Codex (Specification-Driven Workflow)
 
-You are an autonomous coding agent.
-**You are running in headless mode (`--print`). Skills (`/implement`, `/test`, `/build-check`, `/code-review`, etc.) are NOT available.** Execute all steps directly.
+You are an autonomous coding agent running via `codex exec`.
+**You are running in headless mode. Skills (`/implement`, `/test`, `/build-check`, `/code-review`, etc.) and the Agent tool are NOT available.** Execute all steps directly.
 
-Ignore the interactive session workflow (skill-based implementation phase) described in the root `CLAUDE.md` and follow the steps below instead.
+Read `AGENTS.md` at the repository root for project conventions, language rules, document system, and git workflow. Follow those conventions throughout this session.
+
+Ignore the interactive session workflow described in `CLAUDE.md` and follow the steps below instead.
 
 ## PRD Directory
 
@@ -47,7 +49,7 @@ Repeat the following cycle **up to 3 times**. If review finds no issues, proceed
 
 ### Step 2: Run Tests
 
-Determine the canonical test commands from `ralph.toml` first, then `CLAUDE.md`, `docs/architecture.md`, and finally the repo's task runner or manifest files as fallback.
+Determine the canonical test commands from `ralph.toml` first, then `AGENTS.md`, `docs/architecture.md`, and finally the repo's task runner or manifest files as fallback.
 
 When `ralph.toml` exists, use:
 
@@ -64,7 +66,7 @@ Fix any failures before proceeding.
 
 ### Step 3: Build & Lint Check
 
-Determine the canonical validation commands from `ralph.toml` first, then `CLAUDE.md`, `docs/architecture.md`, and finally the repo's task runner or manifest files as fallback.
+Determine the canonical validation commands from `ralph.toml` first, then `AGENTS.md`, `docs/architecture.md`, and finally the repo's task runner or manifest files as fallback.
 
 When `ralph.toml` exists, use:
 
@@ -80,19 +82,17 @@ Run all relevant non-test validation commands, such as:
 If a validation category is not defined or not applicable, note it and continue.
 Fix any failures before proceeding.
 
-### Step 4: Code Review (Codex Review)
+### Step 4: Code Review (Self-Review)
 
-Delegate the code review to Codex using the Agent tool:
+Review your changes by running `git diff HEAD` and checking from these 7 perspectives:
 
-```
-Agent({
-  subagent_type: "codex:codex-rescue",
-  description: "Code review for current changes",
-  prompt: "Review the changes shown by `git diff HEAD` in this repository. Read changed files and `.claude/rules/*.md` for project conventions. Review from these 7 perspectives: (1) Correctness — bugs or logic errors, (2) Security — input handling, authorization, secrets, unsafe execution, trust boundaries, (3) Performance — hot-path inefficiencies, repeated work, excessive I/O, (4) Readability — naming, structure, comments, (5) Convention compliance — project rules in .claude/rules/, (6) Spec compliance — acceptance criteria from docs/prds/*/specifications/, (7) Testing — coverage and quality. Report findings as Must Fix / Should Fix / Nice to Have with file:line references."
-})
-```
-
-If the Agent tool is unavailable in the current runtime, fall back to self-review: check changes with `git diff HEAD` and review from the same 7 perspectives listed above.
+1. **Correctness** — bugs or logic errors
+2. **Security** — input handling, authorization, secrets, unsafe execution, trust boundaries
+3. **Performance** — hot-path inefficiencies, repeated work, excessive I/O
+4. **Readability** — naming, structure, comments
+5. **Convention compliance** — project rules in `AGENTS.md` and `.claude/rules/`
+6. **Spec compliance** — acceptance criteria from `{{PRD_DIR}}/specifications/`
+7. **Testing** — coverage and quality
 
 ### Decision Based on Review Results
 

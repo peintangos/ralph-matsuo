@@ -7,12 +7,8 @@ on:
 
 jobs:
   healthcheck:
-    runs-on:
-      - self-hosted
-      - linux
-      - ec2
-      - claude
-      - ralph
+    if: ${{ contains(vars.RALPH_RUNS_ON_JSON != '' && vars.RALPH_RUNS_ON_JSON || '["self-hosted","linux","ec2","claude","ralph"]', 'self-hosted') }}
+    runs-on: ${{ fromJSON(vars.RALPH_RUNS_ON_JSON != '' && vars.RALPH_RUNS_ON_JSON || '["self-hosted","linux","ec2","claude","ralph"]') }}
     timeout-minutes: 5
     steps:
       - name: Check runner environment

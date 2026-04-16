@@ -12,12 +12,7 @@ jobs:
   # --- Job 1: LLM Content Analysis ---
   validate:
     if: github.event.label.name == 'ralph:prd-requested'
-    runs-on:
-      - self-hosted
-      - linux
-      - ec2
-      - claude
-      - ralph
+    runs-on: ${{ fromJSON(vars.RALPH_RUNS_ON_JSON != '' && vars.RALPH_RUNS_ON_JSON || '["self-hosted","linux","ec2","claude","ralph"]') }}
     timeout-minutes: 10
     permissions:
       contents: read
@@ -181,12 +176,7 @@ jobs:
   create:
     needs: validate
     if: needs.validate.outputs.verdict == 'OK'
-    runs-on:
-      - self-hosted
-      - linux
-      - ec2
-      - claude
-      - ralph
+    runs-on: ${{ fromJSON(vars.RALPH_RUNS_ON_JSON != '' && vars.RALPH_RUNS_ON_JSON || '["self-hosted","linux","ec2","claude","ralph"]') }}
     timeout-minutes: 30
     permissions:
       contents: write
