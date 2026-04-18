@@ -14,6 +14,26 @@ Receives the PRD slug as an argument: `$ARGUMENTS`
 Interactively create the initial MVP PRD for a new project and generate a complete document set under `docs/prds/prd-{slug}/`.
 Use `docs/prds/_template/` as the baseline for file structure and formatting.
 
+## Interaction Modes
+
+This skill supports two interaction modes for the discussion phase (Step 2). Identify the mode at the start of the session. The mode only changes how deeply the discussion is conducted; the generated artifacts and their format are identical in both modes.
+
+### Ambiguous Mode (default)
+
+Discuss the topics in Step 2 at a natural pace. Accept high-level or partial answers, and fill remaining gaps with reasonable defaults so momentum is preserved. Use this mode unless the user explicitly asks for deeper interrogation.
+
+### Grill Me Mode
+
+Interrogate every aspect of the plan until the user and the assistant reach shared understanding. Trigger this mode when the user says things like "grill me", "徹底的に質問して", "詰めて", "grill meモードで", or otherwise requests thorough/rigorous questioning.
+
+Rules for Grill Me Mode:
+
+- Walk the decision tree branch by branch. Resolve dependencies between decisions in order — do not move to a decision that depends on an unresolved earlier one.
+- Ask questions **one at a time**. Wait for the user's answer before asking the next question.
+- For every question, present the recommended answer alongside the question, with a brief reason so the user can agree, tweak, or overrule.
+- If a question can be answered by exploring the codebase (existing docs, `docs/ubiquitous/glossary.md`, `docs/roadmap.md`, `docs/prds/_template/`, related source), investigate first and bring the finding to the user **instead of** asking.
+- Continue until no unresolved branch materially affects PRD scope, functional requirements, UX, or system requirements. Only then proceed to Step 3.
+
 ## Prerequisites
 
 ### Verify Repository Initialization
@@ -58,12 +78,15 @@ Check the following:
 
 ### 2. Discussion with User
 
-Discuss the following topics with the user:
+Discuss the following topics with the user, following the active interaction mode (see `## Interaction Modes`):
+
 - Product vision and purpose
 - Target users (personas)
 - Feature prioritization for MVP
 - Technical constraints
 - UX requirements
+
+In Grill Me Mode, treat the list above as the **root** of the decision tree. Expand each topic into sub-decisions (for example, "Feature prioritization" implies ordering, MVP cut line, out-of-scope rationale) and resolve them in dependency order, one question at a time, with a recommended answer attached to each question.
 
 ### 3. Create PRD Directory
 
@@ -207,3 +230,4 @@ Based on the PRD's functional requirements, split into individual specifications
 - Not all sections need to be decided at once; they can be filled in progressively
 - After creating the PRD, check if any new domain terms should be added to `docs/ubiquitous/glossary.md`
 - This skill only updates documents. No source code implementation or changes
+- Respect the active interaction mode (see `## Interaction Modes`). If the user switches mode mid-session ("grill meに切り替えて" / "もう曖昧でいい"), adapt immediately and keep using the new mode until told otherwise
