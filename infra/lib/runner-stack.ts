@@ -53,9 +53,11 @@ export class RunnerStack extends cdk.Stack {
       "apt-get update",
       "apt-get install -y ca-certificates curl gnupg git tmux jq unzip",
 
-      // Node.js 20 (NodeSource)
-      "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -",
+      // Node.js 24 (NodeSource)
+      "curl -fsSL https://deb.nodesource.com/setup_24.x | bash -",
       "apt-get install -y nodejs",
+      "corepack enable",
+      "corepack prepare pnpm@10.33.2 --activate",
 
       // GitHub CLI
       "curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg" +

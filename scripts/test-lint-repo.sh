@@ -89,8 +89,8 @@ Text.
 EOF
 
   cat > "$repo_dir/ralph.toml" <<'EOF'
-test_primary = "npm run test"
-test_integration = "npm run test:orchestrator"
+test_primary = "pnpm run test"
+test_integration = "pnpm run test:orchestrator"
 build_check = "N/A"
 lint_check = "N/A"
 format_fix = "N/A"
@@ -153,7 +153,7 @@ test_non_portable_registry_value_fails() {
 
   setup_repo "$repo_dir"
   rewritten_registry="$(mktemp)"
-  sed 's/lint_check = "N\/A"/lint_check = "npm run lint:repo"/' "$repo_dir/ralph.toml" > "$rewritten_registry"
+  sed 's/lint_check = "N\/A"/lint_check = "pnpm run lint:repo"/' "$repo_dir/ralph.toml" > "$rewritten_registry"
   mv "$rewritten_registry" "$repo_dir/ralph.toml"
 
   capture_repo_command output status "$repo_dir" "$BASH" scripts/lint-repo.sh

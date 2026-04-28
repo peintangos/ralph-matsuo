@@ -2,6 +2,11 @@
   "name": "ralph-matsuo",
   "version": "1.0.0",
   "description": "Autonomous development framework powered by Claude Code",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": "24.x",
+    "pnpm": "10.x"
+  },
   "scripts": {
     "test": "bash -n scripts/*.sh scripts/ralph/*.sh .github/scripts/*.sh .claude/hooks/*.sh",
     "test:doc-contracts": "bash scripts/test-doc-contracts.sh",
@@ -10,7 +15,7 @@
     "lint:repo": "bash scripts/lint-repo.sh",
     "lint:shell": "bash scripts/lint-shell.sh",
     "lint:actions": "bash scripts/lint-actions.sh",
-    "validate": "npm run test && npm run test:doc-contracts && npm run test:orchestrator && npm run test:repo-lint && npm run lint:repo && npm run lint:shell && npm run lint:actions"
+    "validate": "pnpm run test && pnpm run test:doc-contracts && pnpm run test:orchestrator && pnpm run test:repo-lint && pnpm run lint:repo && pnpm run lint:shell && pnpm run lint:actions"
   },
   "private": false,
   "license": "MIT"

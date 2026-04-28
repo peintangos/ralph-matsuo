@@ -20,7 +20,8 @@ Recommended local prerequisites:
 
 - `bash`
 - `git`
-- `npm`
+- `mise`
+- `pnpm`
 - `jq`
 - `rg` (recommended for local development)
 
@@ -36,15 +37,17 @@ Those tools are not required for every documentation-only change, but they are p
 Run the full local validation suite before opening a pull request:
 
 ```bash
-npm run validate
+mise trust .mise.toml
+mise install
+pnpm run validate
 ```
 
 Key commands:
 
-- `npm test`: shell syntax checks for maintained scripts
-- `npm run test:orchestrator`: regression tests for Ralph loop and orchestrator behavior
-- `npm run test:repo-lint`: regression tests for repository policy checks
-- `npm run lint:repo`: release-readiness checks for repository hygiene and OSS metadata
+- `pnpm test`: shell syntax checks for maintained scripts
+- `pnpm run test:orchestrator`: regression tests for Ralph loop and orchestrator behavior
+- `pnpm run test:repo-lint`: regression tests for repository policy checks
+- `pnpm run lint:repo`: release-readiness checks for repository hygiene and OSS metadata
 
 If you change GitHub Actions, also run workflow-specific checks if available in your environment.
 

@@ -1,7 +1,7 @@
 # Ralph command registry for this repository.
 # Each value is a shell command string or the literal string "N/A".
 
-test_primary = "npm test"
+test_primary = "pnpm test"
 test_integration = "N/A"
 build_check = "N/A"
 lint_check = "N/A"

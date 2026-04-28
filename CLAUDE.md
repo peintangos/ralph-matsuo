@@ -23,9 +23,9 @@ The active PRD directory is the control plane for feature work. Ralph should wor
 
 - Runtime: Bash and Node.js (tooling only)
 - Languages: Markdown, Bash, YAML, TOML
-- Package manager: npm
+- Package manager: mise + pnpm
 - Automation: Git, GitHub Actions, Claude Code CLI, Codex CLI
-- Validation entry points: `npm test`, `npm run test:doc-contracts`, `npm run test:orchestrator`, `npm run lint:repo`, `npm run lint:shell`, `npm run lint:actions`
+- Validation entry points: `pnpm test`, `pnpm run test:doc-contracts`, `pnpm run test:orchestrator`, `pnpm run lint:repo`, `pnpm run lint:shell`, `pnpm run lint:actions`
 
 ### Project Command Registry
 

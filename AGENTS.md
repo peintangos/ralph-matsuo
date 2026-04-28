@@ -35,9 +35,9 @@ Ralph Matsuo は Claude Code と Ralph Loop 向けの **docs-first OSS テンプ
 
 - Runtime: Bash / Node.js（ツーリングのみ）
 - Languages: Markdown, Bash, YAML, TOML
-- Package manager: npm
+- Package manager: mise + pnpm
 - Automation: Git, GitHub Actions, Claude Code CLI / Codex CLI
-- 検証エントリーポイント: `npm test`, `npm run test:doc-contracts`, `npm run test:orchestrator`, `npm run lint:repo`, `npm run lint:shell`, `npm run lint:actions`
+- 検証エントリーポイント: `pnpm test`, `pnpm run test:doc-contracts`, `pnpm run test:orchestrator`, `pnpm run lint:repo`, `pnpm run lint:shell`, `pnpm run lint:actions`
 
 ### プロジェクトコマンドレジストリ（ralph.toml）
 

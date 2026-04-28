@@ -17,7 +17,7 @@ jobs:
           echo "Hostname: $(hostname)"
           echo "User: $(whoami)"
           echo "Node: $(node --version)"
-          echo "npm: $(npm --version)"
+          echo "pnpm: $(pnpm --version)"
           echo "git: $(git --version)"
           echo "gh: $(gh --version | head -1)"
 

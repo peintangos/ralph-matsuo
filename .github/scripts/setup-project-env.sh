@@ -7,7 +7,6 @@ set -euo pipefail
 # stack-specific setup before running Ralph. Keep it idempotent.
 #
 # Examples:
-# - npm ci
 # - pnpm install --frozen-lockfile
 # - uv sync --frozen
 # - pip install -r requirements.txt

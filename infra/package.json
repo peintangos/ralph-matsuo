@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "description": "CDK stack for Ralph self-hosted EC2 runner",
   "private": true,
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": "24.x",
+    "pnpm": "10.x"
+  },
   "scripts": {
     "build": "tsc",
     "test": "bash -n scripts/*.sh",
-    "synth": "npx cdk synth",
+    "synth": "pnpm exec cdk synth",
     "deploy": "bash scripts/deploy.sh",
     "destroy": "bash scripts/destroy.sh"
   },

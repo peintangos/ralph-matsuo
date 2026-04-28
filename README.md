@@ -191,7 +191,8 @@ PRD の `## Branch` に書かれたブランチがまだ存在しない場合、
 
 - コアフローに必須: `bash`, `git`, `claude` (または `codex`)
 - 同梱の Claude フック動作に必須: `jq`
-- このテンプレートのローカル検証と GitHub インストーラーパスに必須: `npm`
+- このテンプレートのローカル検証に必須: `mise`, `pnpm`
+- GitHub インストーラーパスの CLI 導入に必須: `npm`
 - 一部の GitHub 自動化で任意利用: `gh`
 
 ### ランナー構成
@@ -310,17 +311,19 @@ GitHub Actions 上で自律実行を回します。
 公開や PR 作成の前に、ローカル検証を一通り流してください。
 
 ```bash
-npm run validate
+mise trust .mise.toml
+mise install
+pnpm run validate
 ```
 
 個別によく使うコマンド:
 
-- `npm test`: 維持対象シェルスクリプトの構文チェック
-- `npm run test:orchestrator`: Ralph loop の回帰テスト
-- `npm run test:repo-lint`: リポジトリポリシーの回帰テスト
-- `npm run lint:repo`: リポジトリ衛生と OSS メタデータの検査
+- `pnpm test`: 維持対象シェルスクリプトの構文チェック
+- `pnpm run test:orchestrator`: Ralph loop の回帰テスト
+- `pnpm run test:repo-lint`: リポジトリポリシーの回帰テスト
+- `pnpm run lint:repo`: リポジトリ衛生と OSS メタデータの検査
 
-このリポジトリの `npm run test:orchestrator` には、トップレベルの `--dry-run` スモークテストに加えて、不正 PRD、branch 不整合、ready、done などの fixture ベース回帰テストが含まれています。
+このリポジトリの `pnpm run test:orchestrator` には、トップレベルの `--dry-run` スモークテストに加えて、不正 PRD、branch 不整合、ready、done などの fixture ベース回帰テストが含まれています。
 
 ## Known Limitations
 

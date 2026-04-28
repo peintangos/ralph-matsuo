@@ -8,7 +8,7 @@ Ralph Matsuo is a docs-first OSS template that treats PRD artifacts as the execu
 
 - Runtime: Bash and Node.js
 - Languages: Markdown, Bash, YAML, TOML
-- Package manager: npm
+- Package manager: mise + pnpm
 - Command registry: `ralph.toml`
 - Automation: Bash, Git, GitHub Actions
 - Agent runtime: Claude Code CLI
